@@ -1,0 +1,387 @@
+import React, { useEffect, useState } from 'react';
+import { DollarSign, PlusCircle, ChevronLeft, ChevronRight, X, Loader2, Clock, CalendarX2, Briefcase } from 'lucide-react';
+import axios from 'axios';
+import { API_BASE } from '../../apiConfig';
+
+const axiosConfig = {
+    headers: { 'ngrok-skip-browser-warning': 'true' }
+};
+
+interface IPayroll {
+    _id: string;
+    userId: {
+        _id: string;
+        name: string;
+        phone: string;
+        email?: string;
+        baseSalary?: number;
+    } | null;
+    baseSalary: number;
+    bonus: number;
+    fine: number;
+    netSalary: number;
+}
+
+export const Payroll = () => {
+    const [employees, setEmployees] = useState<IPayroll[]>([]);
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [loading, setLoading] = useState(false);
+
+    // Modal State
+    const [showModal, setShowModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [adjData, setAdjData] = useState({
+        bonusAmount: 0,
+        bonusReason: '',
+        fineAmount: 0,
+        fineReason: ''
+    });
+
+    // State lưu dữ liệu chuyên cần
+    const [attendanceStats, setAttendanceStats] = useState({ workDays: 0, lateDays: 0, absentDays: 0 });
+    const [loadingStats, setLoadingStats] = useState(false);
+
+    const getApiMonth = () => {
+        const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const y = currentDate.getFullYear();
+        return `${m}-${y}`;
+    };
+
+    const getDisplayMonth = () => {
+        const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+        const y = currentDate.getFullYear();
+        return `Tháng ${m}/${y}`;
+    };
+
+    const handlePrevMonth = () => setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    const handleNextMonth = () => setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+
+    // 1. FETCH DỮ LIỆU BẢNG LƯƠNG
+    const fetchData = async () => {
+        const apiMonth = getApiMonth();
+        setLoading(true);
+        try {
+            const [usersRes, payrollRes] = await Promise.all([
+                axios.get(`${API_BASE}/users`, axiosConfig),
+                axios.get(`${API_BASE}/payroll/report?month=${apiMonth}`, axiosConfig)
+            ]);
+
+            const users = usersRes.data;
+            const payrolls = payrollRes.data;
+
+            const mergedData = users.map((user: any) => {
+                const userPayroll = payrolls.find((p: any) => p.userId?._id === user._id || p.userId === user._id);
+                const base = user.baseSalary || 0;
+                const bonus = userPayroll?.bonus || 0;
+                const fine = userPayroll?.fine || 0;
+                const netSalary = base + bonus - fine;
+
+                return {
+                    _id: userPayroll?._id || `temp-${user._id}`,
+                    userId: user,
+                    baseSalary: base,
+                    bonus: bonus,
+                    fine: fine,
+                    netSalary: netSalary
+                };
+            });
+
+            setEmployees(mergedData);
+        } catch (error) {
+            console.error("Lỗi fetch:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { fetchData(); }, [currentDate]);
+
+    // 2. MỞ MODAL & LẤY THÔNG TIN TỪ API THẬT (Chuyên cần + Nghỉ phép)
+    const openAdjustmentModal = async (user: any) => {
+        setSelectedUser(user);
+        setShowModal(true);
+        setLoadingStats(true);
+
+        // Reset form nhập
+        setAdjData({ bonusAmount: 0, bonusReason: '', fineAmount: 0, fineReason: '' });
+
+        // Tách tháng và năm từ format "MM-YYYY"
+        const apiMonth = getApiMonth();
+        const [mStr, yStr] = apiMonth.split('-');
+        const monthNum = parseInt(mStr);
+        const yearNum = parseInt(yStr);
+
+        try {
+            // Gọi SONG SONG 2 API: Báo cáo chuyên cần tháng & Lịch sử nghỉ phép của nhân viên
+            const [attRes, leavesRes] = await Promise.all([
+                axios.get(`${API_BASE}/attendance/report/monthly?month=${monthNum}&year=${yearNum}`, axiosConfig),
+                axios.get(`${API_BASE}/leaves/user/${user._id}`, axiosConfig)
+            ]);
+
+            // --- 1. TÍNH NGÀY CÔNG VÀ ĐI MUỘN ---
+            const allStats = attRes.data;
+            const userStat = allStats.find((u: any) => u.userId === user._id);
+
+            let totalWorkDays = 0;
+            let totalLate = 0;
+
+            if (userStat) {
+                totalWorkDays = Object.keys(userStat.days || {}).length;
+                totalLate = userStat.totalLate || 0;
+            }
+
+            // --- 2. TÍNH SỐ NGÀY NGHỈ PHÉP TRONG THÁNG ---
+            const userLeaves = leavesRes.data;
+            const absentCount = userLeaves.filter((leave: any) => {
+                if (leave.status !== 'APPROVED') return false; // Chỉ đếm đơn ĐÃ DUYỆT
+
+                const leaveDate = new Date(leave.startDate);
+                return (leaveDate.getMonth() + 1) === monthNum && leaveDate.getFullYear() === yearNum;
+            }).length;
+
+            // --- 3. CẬP NHẬT LÊN GIAO DIỆN ---
+            setAttendanceStats({
+                workDays: totalWorkDays,
+                lateDays: totalLate,
+                absentDays: absentCount
+            });
+
+        } catch (error) {
+            console.error("Lỗi lấy dữ liệu thống kê từ API:", error);
+            // Nếu có lỗi, để mặc định 0 cho an toàn
+            setAttendanceStats({ workDays: 0, lateDays: 0, absentDays: 0 });
+        } finally {
+            setLoadingStats(false);
+        }
+    };
+
+    // 3. LƯU ĐIỀU CHỈNH
+    const saveAdjustment = async () => {
+        if (!selectedUser) return;
+        if (adjData.bonusAmount <= 0 && adjData.fineAmount <= 0) {
+            return alert("Sếp phải nhập ít nhất một khoản tiền Thưởng hoặc Phạt chứ!");
+        }
+
+        setLoading(true);
+        const apiMonth = getApiMonth();
+        try {
+            const requests = [];
+
+            if (adjData.bonusAmount > 0) {
+                requests.push(axios.post(`${API_BASE}/payroll/adjustment`, {
+                    userId: selectedUser._id,
+                    type: 'BONUS',
+                    amount: adjData.bonusAmount,
+                    reason: adjData.bonusReason || 'Thưởng',
+                    date: new Date().toISOString()
+                }, axiosConfig));
+            }
+
+            if (adjData.fineAmount > 0) {
+                requests.push(axios.post(`${API_BASE}/payroll/adjustment`, {
+                    userId: selectedUser._id,
+                    type: 'FINE',
+                    amount: adjData.fineAmount,
+                    reason: adjData.fineReason || 'Phạt',
+                    date: new Date().toISOString()
+                }, axiosConfig));
+            }
+
+            await Promise.all(requests);
+            await axios.post(`${API_BASE}/payroll/calculate`, { userId: selectedUser._id, month: apiMonth }, axiosConfig);
+
+            setShowModal(false);
+            fetchData();
+        } catch (error) {
+            alert("Lỗi hệ thống khi lưu điều chỉnh!");
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="p-6 bg-gray-50 min-h-screen relative">
+            {/* --- HEADER --- */}
+            <div className="flex justify-between items-center mb-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-4">
+                    <div className="bg-teal-50 p-3 rounded-xl">
+                        <DollarSign className="text-teal-600" size={28} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-800 tracking-tight">Bảng Lương Nhân Sự</h1>
+                        <p className="text-sm text-gray-500 font-medium">Quản lý và điều chỉnh lương từng cá nhân</p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200 shadow-inner">
+                    <button onClick={handlePrevMonth} disabled={loading} className="p-2 bg-white rounded-xl shadow-sm hover:bg-teal-50 hover:text-teal-600 text-gray-500 transition disabled:opacity-50">
+                        <ChevronLeft size={20} />
+                    </button>
+                    <span className="font-black text-lg text-teal-700 w-36 text-center select-none">{getDisplayMonth()}</span>
+                    <button onClick={handleNextMonth} disabled={loading} className="p-2 bg-white rounded-xl shadow-sm hover:bg-teal-50 hover:text-teal-600 text-gray-500 transition disabled:opacity-50">
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
+            </div>
+
+            {/* --- BẢNG DỮ LIỆU --- */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                {loading && <div className="h-1 w-full bg-teal-500 animate-pulse"></div>}
+                <table className="w-full text-left">
+                    <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-black tracking-wider">
+                        <tr>
+                            <th className="px-6 py-5 border-b border-slate-100">Nhân viên</th>
+                            <th className="px-6 py-5 border-b border-slate-100 text-center">Lương Cơ Bản</th>
+                            <th className="px-6 py-5 border-b border-slate-100 text-center">Thưởng/Phạt</th>
+                            <th className="px-6 py-5 border-b border-slate-100">Thực nhận ({getApiMonth()})</th>
+                            <th className="px-6 py-5 border-b border-slate-100 text-right">Điều chỉnh</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {employees.length === 0 ? (
+                            <tr><td colSpan={5} className="text-center py-16 text-gray-400 font-bold">Không có nhân sự nào để hiển thị!</td></tr>
+                        ) : (
+                            employees.map((p) => (
+                                <tr key={p._id} className="hover:bg-teal-50/30 transition-colors group">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-xl bg-teal-100 text-teal-700 font-black flex items-center justify-center">
+                                                {(p.userId?.name || "U").charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-gray-800">{p.userId?.name || 'Chưa xác định'}</div>
+                                                <div className="text-xs text-gray-500">{p.userId?.phone || 'Không có SĐT'}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 text-center font-bold text-gray-600">{p.baseSalary.toLocaleString()}đ</td>
+                                    <td className="px-6 py-4 text-center">
+                                        <div className="text-emerald-500 font-bold text-sm">+{(p.bonus || 0).toLocaleString()}đ</div>
+                                        <div className="text-rose-500 font-bold text-sm">-{(p.fine || 0).toLocaleString()}đ</div>
+                                    </td>
+                                    <td className="px-6 py-4 font-black text-teal-700 text-lg">{p.netSalary.toLocaleString()}đ</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button
+                                            onClick={() => openAdjustmentModal(p.userId)}
+                                            className="bg-slate-50 text-slate-500 p-2 rounded-xl hover:bg-teal-600 hover:text-white transition-all shadow-sm">
+                                            <PlusCircle size={20} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* --- MODAL THƯỞNG PHẠT CHUẨN XỊN --- */}
+            {showModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-[32px] w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 overflow-hidden flex flex-col max-h-[95vh]">
+                        {/* HEADER */}
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-slate-50">
+                            <div>
+                                <h3 className="font-black text-xl text-gray-800">Điều chỉnh lương</h3>
+                                <p className="text-xs text-gray-500 font-bold mt-1">
+                                    Nhân viên: <span className="text-teal-600">{selectedUser?.name}</span> • Tháng {getApiMonth()}
+                                </p>
+                            </div>
+                            <button onClick={() => setShowModal(false)} className="bg-white text-gray-400 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-full shadow-sm"><X size={20} /></button>
+                        </div>
+
+                        {/* BODY MODAL */}
+                        <div className="p-6 overflow-y-auto space-y-6">
+
+                            {/* KHU VỰC THỐNG KÊ CHUYÊN CẦN */}
+                            <div>
+                                <label className="block text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Tình hình chuyên cần tháng này</label>
+                                {loadingStats ? (
+                                    <div className="flex justify-center p-4"><Loader2 className="animate-spin text-teal-500" /></div>
+                                ) : (
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 text-center">
+                                            <Briefcase size={20} className="text-blue-500 mx-auto mb-2" />
+                                            <div className="text-[10px] font-black text-blue-800/60 uppercase">Ngày công</div>
+                                            <div className="text-xl font-black text-blue-700">{attendanceStats.workDays}</div>
+                                        </div>
+                                        <div className="bg-orange-50/50 border border-orange-100 rounded-2xl p-4 text-center">
+                                            <Clock size={20} className="text-orange-500 mx-auto mb-2" />
+                                            <div className="text-[10px] font-black text-orange-800/60 uppercase">Đi muộn</div>
+                                            <div className="text-xl font-black text-orange-700">{attendanceStats.lateDays} <span className="text-sm">lần</span></div>
+                                        </div>
+                                        <div className="bg-rose-50/50 border border-rose-100 rounded-2xl p-4 text-center">
+                                            <CalendarX2 size={20} className="text-rose-500 mx-auto mb-2" />
+                                            <div className="text-[10px] font-black text-rose-800/60 uppercase">Nghỉ phép</div>
+                                            <div className="text-xl font-black text-rose-700">{attendanceStats.absentDays} <span className="text-sm">ngày</span></div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <hr className="border-slate-100" />
+
+                            {/* KHU VỰC NHẬP THƯỞNG */}
+                            <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                                <h4 className="font-black text-emerald-600 mb-4 flex items-center gap-2">
+                                    <PlusCircle size={18} /> Khoản Thưởng (+)
+                                </h4>
+                                <div className="space-y-4">
+                                    <input
+                                        type="number"
+                                        className="w-full bg-white border border-emerald-200 rounded-xl p-3 focus:border-emerald-500 outline-none font-bold text-slate-800"
+                                        placeholder="Nhập số tiền thưởng (VNĐ)"
+                                        value={adjData.bonusAmount || ''}
+                                        onChange={(e) => setAdjData({ ...adjData, bonusAmount: Number(e.target.value) })}
+                                    />
+                                    <input
+                                        type="text"
+                                        className="w-full bg-white border border-emerald-200 rounded-xl p-3 focus:border-emerald-500 outline-none text-slate-700"
+                                        placeholder="Lý do: Đạt KPI, Tăng ca..."
+                                        value={adjData.bonusReason}
+                                        onChange={(e) => setAdjData({ ...adjData, bonusReason: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* KHU VỰC NHẬP PHẠT */}
+                            <div className="bg-rose-50/50 p-5 rounded-2xl border border-rose-100">
+                                <h4 className="font-black text-rose-600 mb-4 flex items-center gap-2">
+                                    <X size={18} /> Khoản Phạt (-)
+                                </h4>
+                                <div className="space-y-4">
+                                    <input
+                                        type="number"
+                                        className="w-full bg-white border border-rose-200 rounded-xl p-3 focus:border-rose-500 outline-none font-bold text-slate-800"
+                                        placeholder="Nhập số tiền phạt (VNĐ)"
+                                        value={adjData.fineAmount || ''}
+                                        onChange={(e) => setAdjData({ ...adjData, fineAmount: Number(e.target.value) })}
+                                    />
+                                    <input
+                                        type="text"
+                                        className="w-full bg-white border border-rose-200 rounded-xl p-3 focus:border-rose-500 outline-none text-slate-700"
+                                        placeholder="Lý do: Đi muộn, Sai quy trình..."
+                                        value={adjData.fineReason}
+                                        onChange={(e) => setAdjData({ ...adjData, fineReason: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* FOOTER */}
+                        <div className="p-6 border-t border-gray-100 bg-white">
+                            <button
+                                onClick={saveAdjustment}
+                                disabled={loading}
+                                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-lg hover:bg-teal-600 hover:-translate-y-1 transition-all duration-300 shadow-xl disabled:opacity-50 flex justify-center items-center gap-2">
+                                {loading ? <Loader2 className="animate-spin" /> : null}
+                                {loading ? 'ĐANG LƯU DỮ LIỆU...' : 'LƯU LẠI'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
