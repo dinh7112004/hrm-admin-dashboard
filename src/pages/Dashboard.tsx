@@ -158,15 +158,46 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
     // ==========================================
     // XỬ LÝ API PHÊ DUYỆT
     // ==========================================
-
     const handleApproveAll = async () => {
-        if (!window.confirm("Duyệt toàn bộ các yêu cầu đang chờ?")) return;
+        // 1. Lọc đơn điểm danh và nghỉ phép đang chờ
+        const pendingAttendance = data.filter(item => item.status === 'PENDING');
+        const pendingLeaves = leavesData.filter(item => item.status === 'PENDING');
+
+        const totalCount = pendingAttendance.length + pendingLeaves.length;
+        if (totalCount === 0) return alert("Không còn đơn nào để duyệt sếp ơi!");
+
+        if (!window.confirm(`Sếp duyệt nhanh ${totalCount} đơn nhé?`)) return;
+
         try {
-            await axios.put(`${API_BASE}/attendance/approve-all`);
-            alert("Đã duyệt toàn bộ thành công!");
+            const requests: Promise<any>[] = [];
+
+            // Duyệt ĐIỂM DANH: Backend dùng PUT và /approve
+            pendingAttendance.forEach(item => {
+                requests.push(
+                    axios.put(`${API_BASE}/attendance/${item._id}/approve`,
+                        { reply: "Duyệt tự động" },
+                        { headers: { 'ngrok-skip-browser-warning': 'true' } })
+                );
+            });
+
+            // Duyệt NGHỈ PHÉP: Backend sếp dùng PATCH và /status (ĐÃ SỬA Ở ĐÂY)
+            pendingLeaves.forEach(item => {
+                requests.push(
+                    axios.patch(`${API_BASE}/leaves/${item._id}/status`,
+                        { status: 'APPROVED' },
+                        { headers: { 'ngrok-skip-browser-warning': 'true' } })
+                );
+            });
+
+            await Promise.all(requests);
+
+            alert("Đã duyệt tất cả");
             if (refreshData) refreshData();
             fetchExtraData();
-        } catch (err) { alert("Lỗi khi duyệt yêu cầu!"); }
+        } catch (err) {
+            console.error("Lỗi duyệt hàng loạt:", err);
+            alert("Vẫn còn lỗi");
+        }
     };
 
     const handleApproveSingle = async (record: any, statusToUpdate: 'APPROVED' | 'REJECTED' = 'APPROVED') => {
