@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Send, UserCircle } from 'lucide-react';
+import { Send, UserCircle, ChevronLeft } from 'lucide-react'; // THÊM: ChevronLeft cho nút Back trên mobile
 import React, { useEffect, useRef, useState } from 'react';
 import { Socket, io } from 'socket.io-client';
 import { API_BASE } from '../../apiConfig';
@@ -75,7 +75,11 @@ export default function Chat() {
                 finalData.sort((a: any, b: any) => new Date(b.lastTime || 0).getTime() - new Date(a.lastTime || 0).getTime());
 
                 setEmployees(finalData);
-                if (finalData.length > 0 && !selectedUser) setSelectedUser(finalData[0]);
+                // XÓA TẠM DÒNG: if (finalData.length > 0 && !selectedUser) setSelectedUser(finalData[0]); 
+                // Lý do: Nếu tự động chọn user trên mobile, nó sẽ nhảy thẳng vào khung chat che mất danh sách. Mình chỉ tự động chọn trên màn hình lớn.
+                if (window.innerWidth >= 768 && finalData.length > 0 && !selectedUser) {
+                    setSelectedUser(finalData[0]);
+                }
             } catch (error) {
                 console.error("Lỗi tải dữ liệu:", error);
             }
@@ -155,11 +159,14 @@ export default function Chat() {
     };
 
     return (
-        <div className="flex h-[calc(100vh-140px)] bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden font-sans">
+        <div className="flex h-[calc(100vh-100px)] md:h-[calc(100vh-140px)] max-w-[1600px] mx-auto bg-white md:rounded-2xl shadow-xl border-x md:border border-gray-200 overflow-hidden font-sans">
+
             {/* CỘT TRÁI - DANH SÁCH NHÂN VIÊN */}
-            <div className="w-1/3 border-r border-gray-200 flex flex-col bg-gray-50/50">
-                <div className="p-5 border-b bg-white"><h2 className="text-xl font-bold text-blue-700">Hỗ trợ nhân sự</h2></div>
-                <div className="flex-1 overflow-y-auto">
+            <div className={`${selectedUser ? 'hidden md:flex' : 'flex'} w-full md:w-[350px] lg:w-1/3 border-r border-gray-200 flex-col bg-gray-50/50 shrink-0`}>
+                <div className="p-4 md:p-5 border-b bg-white shrink-0">
+                    <h2 className="text-lg md:text-xl font-bold text-blue-700">Hỗ trợ nhân sự</h2>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
                     {employees.map((user) => {
                         const isOnline = onlineUsers.includes(String(user._id));
                         const isSelected = selectedUser?._id === user._id;
@@ -167,22 +174,22 @@ export default function Chat() {
 
                         return (
                             <div key={user._id} onClick={() => handleSelectUser(user)}
-                                className={`flex items-center p-4 cursor-pointer border-l-4 transition-all ${isSelected ? 'bg-blue-50 border-blue-600' : 'hover:bg-gray-100 border-transparent'}`}>
-                                <div className="relative">
-                                    <UserCircle className={`w-12 h-12 ${isSelected ? 'text-blue-600' : 'text-gray-400'}`} />
-                                    {isOnline && <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></span>}
+                                className={`flex items-center p-3 md:p-4 cursor-pointer border-l-4 transition-all ${isSelected ? 'bg-blue-50 border-blue-600' : 'hover:bg-gray-100 border-transparent'}`}>
+                                <div className="relative shrink-0">
+                                    <UserCircle className={`w-10 h-10 md:w-12 md:h-12 ${isSelected ? 'text-blue-600' : 'text-gray-400'}`} />
+                                    {isOnline && <span className="absolute bottom-0 right-0 w-3 h-3 md:w-3.5 md:h-3.5 bg-green-500 border-2 border-white rounded-full"></span>}
                                     {hasUnread && (
-                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white animate-pulse">
+                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] md:min-w-[18px] text-center border-2 border-white animate-pulse">
                                             {user.unreadCount}
                                         </span>
                                     )}
                                 </div>
                                 <div className="ml-3 flex-1 min-w-0">
-                                    <div className="flex justify-between items-center">
-                                        <p className={`text-sm truncate ${hasUnread ? 'font-black text-black' : 'font-bold text-gray-700'}`}>{user.name}</p>
-                                        <span className="text-[10px] text-gray-400 font-medium">{formatTime(user.lastTime)}</span>
+                                    <div className="flex justify-between items-center mb-0.5">
+                                        <p className={`text-sm md:text-base truncate pr-2 ${hasUnread ? 'font-black text-black' : 'font-bold text-gray-700'}`}>{user.name}</p>
+                                        <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">{formatTime(user.lastTime)}</span>
                                     </div>
-                                    <p className={`text-xs truncate mt-0.5 ${hasUnread ? 'text-blue-600 font-bold' : 'text-gray-500'}`}>
+                                    <p className={`text-[11px] md:text-xs truncate ${hasUnread ? 'text-blue-600 font-bold' : 'text-gray-500'}`}>
                                         {user.lastMessage}
                                     </p>
                                 </div>
@@ -193,44 +200,75 @@ export default function Chat() {
             </div>
 
             {/* CỘT PHẢI - KHUNG CHAT */}
-            <div className="flex-1 flex flex-col bg-white">
+            <div className={`${selectedUser ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white min-w-0`}>
                 {selectedUser ? (
                     <>
-                        <div className="p-4 border-b flex items-center bg-white shadow-sm">
-                            <UserCircle className="w-10 h-10 text-blue-600 mr-3" />
-                            <div>
-                                <h3 className="font-bold text-gray-800">{selectedUser.name}</h3>
-                                <p className={`text-xs font-bold ${onlineUsers.includes(String(selectedUser._id)) ? 'text-green-500' : 'text-gray-400'}`}>
+                        {/* HEADER KHUNG CHAT */}
+                        <div className="p-3 md:p-4 border-b flex items-center bg-white shadow-sm shrink-0 sticky top-0 z-10">
+                            {/* NÚT BACK CHỈ HIỆN TRÊN MOBILE */}
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                className="md:hidden mr-2 p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors active:scale-95"
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
+
+                            <UserCircle className="w-9 h-9 md:w-10 md:h-10 text-blue-600 mr-2 md:mr-3 shrink-0" />
+                            <div className="min-w-0">
+                                <h3 className="font-bold text-gray-800 text-sm md:text-base truncate">{selectedUser.name}</h3>
+                                <p className={`text-[10px] md:text-xs font-bold ${onlineUsers.includes(String(selectedUser._id)) ? 'text-green-500' : 'text-gray-400'}`}>
                                     {onlineUsers.includes(String(selectedUser._id)) ? '● Đang hoạt động' : '○ Ngoại tuyến'}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#f0f2f5]">
+                        {/* NỘI DUNG CHAT */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4 bg-[#f0f2f5] custom-scrollbar">
                             {messages.map((msg, index) => (
                                 <div key={msg.id || index} className={`flex flex-col ${msg.isAdmin ? 'items-end' : 'items-start'}`}>
-                                    <div className={`px-4 py-2 rounded-2xl max-w-[75%] shadow-sm text-sm ${msg.isAdmin ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-gray-800 border rounded-tl-none'}`}>
+                                    <div className={`px-3 py-2 md:px-4 md:py-2.5 max-w-[85%] md:max-w-[75%] shadow-sm text-sm break-words ${msg.isAdmin ? 'bg-blue-600 text-white rounded-[20px] rounded-tr-sm' : 'bg-white text-gray-800 border rounded-[20px] rounded-tl-sm'}`}>
                                         {msg.text}
                                     </div>
-                                    <span className="text-[10px] text-gray-400 mt-1 font-medium">{msg.time}</span>
+                                    <span className="text-[9px] md:text-[10px] text-gray-400 mt-1 font-medium px-1">{msg.time}</span>
                                 </div>
                             ))}
-                            <div ref={messagesEndRef} />
+                            <div ref={messagesEndRef} className="h-1" />
                         </div>
 
-                        <div className="p-4 border-t bg-white">
+                        {/* KHUNG NHẬP TIN NHẮN */}
+                        <div className="p-3 md:p-4 border-t bg-white shrink-0">
                             <form onSubmit={handleSend} className="flex gap-2">
-                                <input type="text" className="flex-1 bg-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tin nhắn..." value={inputText} onChange={(e) => setInputText(e.target.value)} />
-                                <button type="submit" disabled={!inputText.trim()} className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:bg-gray-300">
-                                    <Send size={20} />
+                                <input
+                                    type="text"
+                                    className="flex-1 bg-gray-100 rounded-xl px-4 py-2.5 md:py-3 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all min-w-0"
+                                    placeholder="Nhập tin nhắn..."
+                                    value={inputText}
+                                    onChange={(e) => setInputText(e.target.value)}
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!inputText.trim()}
+                                    className="p-2.5 md:p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:scale-95 transition-all disabled:bg-gray-300 disabled:active:scale-100 shrink-0"
+                                >
+                                    <Send size={20} className="md:w-[22px] md:h-[22px]" />
                                 </button>
                             </form>
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-400 font-medium">Chọn một nhân viên để bắt đầu hỗ trợ</div>
+                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400 bg-[#f0f2f5]">
+                        <UserCircle size={64} className="text-gray-300 mb-4" />
+                        <p className="font-medium text-sm md:text-base">Chọn một nhân viên để bắt đầu hỗ trợ</p>
+                    </div>
                 )}
             </div>
+
+            {/* CSS Scrollbar cho gọn gàng */}
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+            `}</style>
         </div>
     );
 }

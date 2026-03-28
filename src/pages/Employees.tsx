@@ -92,142 +92,138 @@ export const Employees = () => {
     );
 
     return (
-        <div className="p-2 md:p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1600px] mx-auto">
+        <div className="p-3 md:p-6 space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1600px] mx-auto">
 
             {/* TOP HEADER SECTION */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-8 rounded-[32px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 group-hover:rotate-12 transition-all duration-1000">
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-5 md:gap-6 bg-white p-5 md:p-8 rounded-[24px] md:rounded-[32px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 group-hover:rotate-12 transition-all duration-1000 hidden md:block">
                     <Users size={180} />
                 </div>
 
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2.5 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200">
-                            <ShieldCheck size={24} />
+                        <div className="p-2 md:p-2.5 bg-blue-600 rounded-xl md:rounded-2xl text-white shadow-lg shadow-blue-200">
+                            <ShieldCheck size={20} className="md:w-6 md:h-6" />
                         </div>
-                        <h3 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Nhân sự</h3>
+                        <h3 className="text-xl md:text-3xl font-black text-slate-800 tracking-tight uppercase">Nhân sự</h3>
                     </div>
-                    <p className="text-slate-400 font-bold ml-1 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <p className="text-slate-400 font-bold ml-1 flex items-center gap-2 text-xs md:text-base">
+                        <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                         Hệ thống đang quản lý {employees.length} tài khoản
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 relative z-10">
-                    <div className="relative group/search">
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4 relative z-10 w-full xl:w-auto">
+                    <div className="relative group/search w-full md:w-auto">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/search:text-blue-500 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Tìm nhanh nhân viên..."
-                            className="pl-12 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-[20px] text-sm font-bold w-full md:w-[320px] outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all shadow-inner"
+                            className="pl-11 md:pl-12 pr-4 md:pr-6 py-3.5 md:py-4 bg-slate-50 border border-slate-100 rounded-xl md:rounded-[20px] text-sm font-bold w-full md:w-[320px] outline-none focus:bg-white focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all shadow-inner"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <button
                         onClick={openAddModal}
-                        className="bg-slate-900 text-white px-8 py-4 rounded-[20px] font-black flex items-center gap-3 shadow-xl shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-500/30 active:scale-95 transition-all duration-300"
+                        className="bg-slate-900 text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl md:rounded-[20px] font-black flex items-center justify-center gap-2 md:gap-3 shadow-xl shadow-slate-200 hover:bg-blue-600 hover:shadow-blue-500/30 active:scale-95 transition-all duration-300 w-full md:w-auto"
                     >
-                        <UserPlus size={20} /> THÊM MỚI
+                        <UserPlus size={18} className="md:w-5 md:h-5" /> THÊM MỚI
                     </button>
                 </div>
             </div>
 
             {/* MAIN TABLE SECTION */}
-            <div className="bg-white border border-slate-100 rounded-[35px] shadow-[0_10px_40px_rgb(0,0,0,0.03)] overflow-hidden">
+            <div className="bg-white border border-slate-100 rounded-[24px] md:rounded-[35px] shadow-[0_10px_40px_rgb(0,0,0,0.03)] overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table className="w-full text-left border-collapse min-w-[900px]">
                         <thead>
-                            <tr className="bg-slate-50/50 text-[11px] uppercase text-slate-400 font-black tracking-widest border-b border-slate-50">
-                                <th className="px-8 py-7">Nhân viên & Thông tin</th>
-                                <th className="px-8 py-7 text-center">Bộ phận / Chức vụ</th>
-                                {/* THÊM: Cột Lương Cơ Bản */}
-                                <th className="px-8 py-7 text-right">Lương cơ bản</th>
-                                <th className="px-8 py-7 text-center">Trạng thái thiết bị</th>
-                                <th className="px-8 py-7 text-right">Hành động</th>
+                            <tr className="bg-slate-50/50 text-[10px] md:text-[11px] uppercase text-slate-400 font-black tracking-widest border-b border-slate-50">
+                                <th className="px-5 md:px-8 py-5 md:py-7">Nhân viên & Thông tin</th>
+                                <th className="px-5 md:px-8 py-5 md:py-7 text-center">Bộ phận / Chức vụ</th>
+                                <th className="px-5 md:px-8 py-5 md:py-7 text-right">Lương cơ bản</th>
+                                <th className="px-5 md:px-8 py-5 md:py-7 text-center">Trạng thái thiết bị</th>
+                                <th className="px-5 md:px-8 py-5 md:py-7 text-right">Hành động</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {filteredEmployees.map((emp: any) => (
                                 <tr key={emp._id} className="group hover:bg-blue-50/20 transition-all duration-300">
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-14 w-14 rounded-[20px] bg-gradient-to-br from-white to-slate-100 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 font-black text-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                                    <td className="px-5 md:px-8 py-4 md:py-6">
+                                        <div className="flex items-center gap-3 md:gap-4">
+                                            <div className="h-12 w-12 md:h-14 md:w-14 shrink-0 rounded-[16px] md:rounded-[20px] bg-gradient-to-br from-white to-slate-100 border border-slate-200 shadow-sm flex items-center justify-center text-slate-700 font-black text-lg md:text-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
                                                 {(emp.name || "U").charAt(0).toUpperCase()}
                                             </div>
-                                            <div>
-                                                <p className="font-black text-slate-800 text-base uppercase tracking-tight group-hover:text-blue-600 transition-colors">{emp.name}</p>
-                                                <div className="flex items-center gap-3 mt-1.5">
-                                                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 bg-slate-100/50 px-2 py-0.5 rounded-lg">
-                                                        <Phone size={12} className="text-blue-500" /> {emp.phone}
+                                            <div className="min-w-0">
+                                                <p className="font-black text-slate-800 text-sm md:text-base uppercase tracking-tight group-hover:text-blue-600 transition-colors truncate">{emp.name}</p>
+                                                <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-1 md:mt-1.5">
+                                                    <span className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-[11px] font-bold text-slate-400 bg-slate-100/50 px-2 py-0.5 rounded-lg whitespace-nowrap">
+                                                        <Phone size={10} className="md:w-3 md:h-3 text-blue-500" /> {emp.phone}
                                                     </span>
-                                                    <span className="text-[10px] px-2 py-0.5 bg-blue-50 rounded-lg font-black text-blue-600 uppercase">ID: {emp.userId}</span>
+                                                    <span className="text-[9px] md:text-[10px] px-2 py-0.5 bg-blue-50 rounded-lg font-black text-blue-600 uppercase whitespace-nowrap">ID: {emp.userId}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
+                                    <td className="px-5 md:px-8 py-4 md:py-6">
                                         <div className="flex flex-col items-center justify-center gap-1.5 text-center">
-                                            <div className="flex items-center gap-2 text-slate-700 bg-slate-50 px-3 py-1 rounded-xl border border-slate-100">
-                                                <Building2 size={14} className="text-blue-500" />
-                                                <span className="text-xs font-black uppercase tracking-tight">{emp.dept || 'N/A'}</span>
+                                            <div className="flex items-center gap-1.5 md:gap-2 text-slate-700 bg-slate-50 px-2.5 md:px-3 py-1 rounded-xl border border-slate-100 whitespace-nowrap">
+                                                <Building2 size={12} className="md:w-3.5 md:h-3.5 text-blue-500" />
+                                                <span className="text-[11px] md:text-xs font-black uppercase tracking-tight">{emp.dept || 'N/A'}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-slate-400">
-                                                <Briefcase size={12} />
-                                                <span className="text-[10px] font-bold uppercase">{emp.position || 'Nhân viên'}</span>
+                                            <div className="flex items-center gap-1.5 md:gap-2 text-slate-400 whitespace-nowrap">
+                                                <Briefcase size={10} className="md:w-3 md:h-3" />
+                                                <span className="text-[9px] md:text-[10px] font-bold uppercase">{emp.position || 'Nhân viên'}</span>
                                             </div>
                                         </div>
                                     </td>
-
-                                    {/* THÊM: Hiển thị tiền lương */}
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="flex items-center justify-end gap-1.5 font-black text-emerald-600 text-base">
-                                            {(emp.baseSalary || 0).toLocaleString()} <span className="text-xs text-emerald-400">VNĐ</span>
+                                    <td className="px-5 md:px-8 py-4 md:py-6 text-right">
+                                        <div className="flex items-center justify-end gap-1 md:gap-1.5 font-black text-emerald-600 text-sm md:text-base whitespace-nowrap">
+                                            {(emp.baseSalary || 0).toLocaleString()} <span className="text-[10px] md:text-xs text-emerald-400">VNĐ</span>
                                         </div>
                                     </td>
-
-                                    <td className="px-8 py-6 text-center">
+                                    <td className="px-5 md:px-8 py-4 md:py-6 text-center">
                                         <div className="flex flex-col items-center">
                                             {emp.deviceId ? (
-                                                <div className="bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-2xl flex flex-col items-center gap-1 w-fit group-hover:shadow-md transition-shadow mx-auto">
-                                                    <div className="flex items-center gap-2">
-                                                        <Smartphone size={14} className="text-emerald-500 animate-bounce" />
-                                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">Đã liên kết</span>
+                                                <div className="bg-emerald-50 border border-emerald-100 px-3 md:px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl flex flex-col items-center gap-1 w-fit group-hover:shadow-md transition-shadow mx-auto">
+                                                    <div className="flex items-center gap-1.5 md:gap-2">
+                                                        <Smartphone size={12} className="md:w-3.5 md:h-3.5 text-emerald-500 animate-bounce" />
+                                                        <span className="text-[9px] md:text-[10px] font-black text-emerald-600 uppercase tracking-tighter whitespace-nowrap">Đã liên kết</span>
                                                     </div>
-                                                    <p className="text-[9px] text-emerald-400 font-mono font-bold truncate w-24 text-center">{emp.deviceId}</p>
+                                                    <p className="text-[8px] md:text-[9px] text-emerald-400 font-mono font-bold truncate w-20 md:w-24 text-center">{emp.deviceId}</p>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center justify-center gap-2 text-slate-300 px-4 py-2 border border-dashed border-slate-200 rounded-2xl mx-auto">
-                                                    <Smartphone size={14} className="opacity-50" />
-                                                    <span className="text-[10px] font-black uppercase">Chưa có máy</span>
+                                                <div className="flex items-center justify-center gap-1.5 md:gap-2 text-slate-300 px-3 md:px-4 py-1.5 md:py-2 border border-dashed border-slate-200 rounded-xl md:rounded-2xl mx-auto whitespace-nowrap">
+                                                    <Smartphone size={12} className="md:w-3.5 md:h-3.5 opacity-50" />
+                                                    <span className="text-[9px] md:text-[10px] font-black uppercase">Chưa có máy</span>
                                                 </div>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex justify-end items-center gap-2 opacity-100 md:opacity-20 md:group-hover:opacity-100 transition-all duration-300 md:translate-x-4 md:group-hover:translate-x-0">
+                                    <td className="px-5 md:px-8 py-4 md:py-6">
+                                        <div className="flex justify-end items-center gap-1.5 md:gap-2 opacity-100 md:opacity-20 md:group-hover:opacity-100 transition-all duration-300 md:translate-x-4 md:group-hover:translate-x-0">
                                             {emp.deviceId && (
                                                 <button
                                                     onClick={() => handleResetDevice(emp._id, emp.name)}
-                                                    className="p-3 text-amber-500 hover:bg-amber-50 hover:text-amber-600 rounded-2xl transition-all hover:rotate-180 duration-500 shadow-sm hover:shadow-md"
+                                                    className="p-2 md:p-3 text-amber-500 hover:bg-amber-50 hover:text-amber-600 rounded-xl md:rounded-2xl transition-all hover:rotate-180 duration-500 shadow-sm hover:shadow-md"
                                                     title="Gỡ liên kết máy"
                                                 >
-                                                    <RotateCcw size={18} />
+                                                    <RotateCcw size={16} className="md:w-[18px] md:h-[18px]" />
                                                 </button>
                                             )}
                                             <button
                                                 onClick={() => openEditModal(emp)}
-                                                className="p-3 text-blue-500 hover:bg-blue-50 rounded-2xl transition-all shadow-sm hover:shadow-md"
+                                                className="p-2 md:p-3 text-blue-500 hover:bg-blue-50 rounded-xl md:rounded-2xl transition-all shadow-sm hover:shadow-md"
                                                 title="Chỉnh sửa"
                                             >
-                                                <Pencil size={18} />
+                                                <Pencil size={16} className="md:w-[18px] md:h-[18px]" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(emp._id, emp.name)}
-                                                className="p-3 text-rose-500 hover:bg-rose-50 rounded-2xl transition-all shadow-sm hover:shadow-md"
+                                                className="p-2 md:p-3 text-rose-500 hover:bg-rose-50 rounded-xl md:rounded-2xl transition-all shadow-sm hover:shadow-md"
                                                 title="Xóa tài khoản"
                                             >
-                                                <Trash2 size={18} />
+                                                <Trash2 size={16} className="md:w-[18px] md:h-[18px]" />
                                             </button>
                                         </div>
                                     </td>
@@ -240,91 +236,99 @@ export const Employees = () => {
 
             {/* MODAL FORM */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[8px] z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="bg-white w-full max-w-xl rounded-[45px] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 border border-white/20">
-                        <div className="relative p-10 pb-6 flex justify-between items-center">
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[8px] z-[100] flex items-center justify-center p-3 md:p-4 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-xl rounded-[24px] md:rounded-[45px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh] animate-in zoom-in-95 slide-in-from-bottom-12 duration-500 border border-white/20">
+
+                        <div className="relative p-5 md:p-10 pb-4 md:pb-6 flex justify-between items-start md:items-center shrink-0">
                             <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-500"></div>
-                            <div>
-                                <h4 className="font-black text-2xl text-slate-800 tracking-tight uppercase">
+                            <div className="pr-4">
+                                <h4 className="font-black text-lg md:text-2xl text-slate-800 tracking-tight uppercase line-clamp-1">
                                     {isEdit ? "Cập nhật nhân sự" : "Tạo tài khoản mới"}
                                 </h4>
-                                <p className="text-slate-400 text-xs font-bold mt-1 uppercase tracking-widest">Quản lý hồ sơ & Lương</p>
+                                <p className="text-slate-400 text-[10px] md:text-xs font-bold mt-1 uppercase tracking-widest">Quản lý hồ sơ & Lương</p>
                             </div>
-                            <button type="button" onClick={() => setShowModal(false)} className="p-3 bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all active:scale-90">
-                                <X size={24} />
+                            <button type="button" onClick={() => setShowModal(false)} className="p-2 md:p-3 bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all active:scale-90 shrink-0">
+                                <X size={20} className="md:w-6 md:h-6" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-10 pt-4 space-y-6">
+                        {/* Thêm overflow-y-auto cho form body để scroll mượt trên màn hình thấp */}
+                        <div className="overflow-y-auto flex-1">
+                            <form onSubmit={handleSubmit} className="p-5 md:p-10 pt-0 md:pt-4 space-y-5 md:space-y-6">
 
-                            {/* Khối Thông tin đăng nhập */}
-                            <div className="p-5 bg-slate-50/50 border border-slate-100 rounded-[24px] space-y-4">
-                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Thông tin đăng nhập</h5>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Mã định danh (ID)</label>
-                                        <input type="text" placeholder="ID..." required className="w-full bg-white border border-slate-200 p-3.5 rounded-2xl font-black text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" value={formData.userId} onChange={(e) => setFormData({ ...formData, userId: e.target.value })} />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest text-blue-500">Mật khẩu</label>
-                                        <input type="password" placeholder="••••••••" required className="w-full bg-white border border-slate-200 p-3.5 rounded-2xl font-black text-blue-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Khối Hồ sơ nhân sự */}
-                            <div className="p-5 bg-slate-50/50 border border-slate-100 rounded-[24px] space-y-4">
-                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Hồ sơ nhân sự</h5>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Họ và tên</label>
-                                        <input type="text" placeholder="Nhập họ tên..." required className="w-full bg-white border border-slate-200 p-3.5 rounded-2xl font-black text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Số điện thoại</label>
-                                        <input type="text" placeholder="SĐT..." required className="w-full bg-white border border-slate-200 p-3.5 rounded-2xl font-black text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                                {/* Khối Thông tin đăng nhập */}
+                                <div className="p-4 md:p-5 bg-slate-50/50 border border-slate-100 rounded-[20px] md:rounded-[24px] space-y-4">
+                                    <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2 mb-3 md:mb-4">Thông tin đăng nhập</h5>
+                                    {/* Lưới: 1 cột trên Mobile, 2 cột trên md */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Mã định danh (ID)</label>
+                                            <input type="text" placeholder="ID..." required className="w-full bg-white border border-slate-200 p-3 md:p-3.5 rounded-xl md:rounded-2xl font-black text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm text-sm" value={formData.userId} onChange={(e) => setFormData({ ...formData, userId: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest text-blue-500">Mật khẩu</label>
+                                            <input type="password" placeholder="••••••••" required className="w-full bg-white border border-slate-200 p-3 md:p-3.5 rounded-xl md:rounded-2xl font-black text-blue-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm text-sm" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Phòng ban</label>
-                                        <input type="text" placeholder="Bộ phận..." className="w-full bg-white border border-slate-200 p-3.5 rounded-2xl font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" value={formData.dept} onChange={(e) => setFormData({ ...formData, dept: e.target.value })} />
+                                {/* Khối Hồ sơ nhân sự */}
+                                <div className="p-4 md:p-5 bg-slate-50/50 border border-slate-100 rounded-[20px] md:rounded-[24px] space-y-4">
+                                    <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-2 mb-3 md:mb-4">Hồ sơ nhân sự</h5>
+                                    {/* Lưới: 1 cột trên Mobile, 2 cột trên md */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Họ và tên</label>
+                                            <input type="text" placeholder="Nhập họ tên..." required className="w-full bg-white border border-slate-200 p-3 md:p-3.5 rounded-xl md:rounded-2xl font-black text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm text-sm" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Số điện thoại</label>
+                                            <input type="text" placeholder="SĐT..." required className="w-full bg-white border border-slate-200 p-3 md:p-3.5 rounded-xl md:rounded-2xl font-black text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm text-sm" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                                        </div>
+                                    </div>
+
+                                    {/* Lưới: 1 cột trên Mobile, 2 cột trên md */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Phòng ban</label>
+                                            <input type="text" placeholder="Bộ phận..." className="w-full bg-white border border-slate-200 p-3 md:p-3.5 rounded-xl md:rounded-2xl font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm text-sm" value={formData.dept} onChange={(e) => setFormData({ ...formData, dept: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Chức vụ</label>
+                                            <input type="text" placeholder="Vị trí..." className="w-full bg-white border border-slate-200 p-3 md:p-3.5 rounded-xl md:rounded-2xl font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm text-sm" value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* THÊM: Khối Lương */}
+                                <div className="p-4 md:p-5 bg-emerald-50/50 border border-emerald-100 rounded-[20px] md:rounded-[24px]">
+                                    <div className="flex items-center gap-2 border-b border-emerald-200/50 pb-2 mb-3 md:mb-4">
+                                        <DollarSign size={14} className="text-emerald-500" />
+                                        <h5 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Chế độ đãi ngộ</h5>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Chức vụ</label>
-                                        <input type="text" placeholder="Vị trí..." className="w-full bg-white border border-slate-200 p-3.5 rounded-2xl font-bold text-slate-600 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm" value={formData.position} onChange={(e) => setFormData({ ...formData, position: e.target.value })} />
+                                        <label className="text-[10px] font-black text-emerald-600 uppercase ml-2 tracking-widest">Mức lương cơ bản (VNĐ)</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Ví dụ: 10000000"
+                                            className="w-full bg-white border-2 border-emerald-100 p-3 md:p-4 rounded-xl md:rounded-2xl font-black text-emerald-700 text-base md:text-lg focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all shadow-sm"
+                                            value={formData.baseSalary || ''}
+                                            onChange={(e) => setFormData({ ...formData, baseSalary: Number(e.target.value) })}
+                                        />
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* THÊM: Khối Lương */}
-                            <div className="p-5 bg-emerald-50/50 border border-emerald-100 rounded-[24px]">
-                                <div className="flex items-center gap-2 border-b border-emerald-200/50 pb-2 mb-4">
-                                    <DollarSign size={14} className="text-emerald-500" />
-                                    <h5 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Chế độ đãi ngộ</h5>
+                                {/* Buttons: Đảo ngược thứ tự trên mobile (Lưu ở trên, Hủy ở dưới) hoặc xếp ngang tùy màn */}
+                                <div className="pt-2 md:pt-4 flex flex-col-reverse md:flex-row gap-3 md:gap-4 sticky bottom-0 bg-white pb-2">
+                                    <button type="button" onClick={() => setShowModal(false)} className="w-full md:flex-1 bg-slate-100 text-slate-500 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black hover:bg-slate-200 transition-all uppercase tracking-widest text-xs">
+                                        Hủy
+                                    </button>
+                                    <button type="submit" disabled={loading} className="w-full md:flex-[2.5] bg-slate-900 text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black shadow-xl md:shadow-2xl shadow-slate-300 md:shadow-slate-300 hover:bg-blue-600 hover:-translate-y-1 active:scale-95 flex justify-center items-center gap-2 md:gap-3 transition-all duration-300 text-sm md:text-base">
+                                        {loading ? <Loader2 className="animate-spin" /> : (isEdit ? 'LƯU THÔNG TIN' : 'XÁC NHẬN TẠO')}
+                                    </button>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-emerald-600 uppercase ml-2 tracking-widest">Mức lương cơ bản (VNĐ)</label>
-                                    <input
-                                        type="number"
-                                        placeholder="Ví dụ: 10000000"
-                                        className="w-full bg-white border-2 border-emerald-100 p-4 rounded-2xl font-black text-emerald-700 text-lg focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all shadow-sm"
-                                        value={formData.baseSalary || ''}
-                                        onChange={(e) => setFormData({ ...formData, baseSalary: Number(e.target.value) })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="pt-2 flex gap-4">
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black hover:bg-slate-200 transition-all uppercase tracking-widest text-xs">
-                                    Hủy
-                                </button>
-                                <button type="submit" disabled={loading} className="flex-[2.5] bg-slate-900 text-white py-4 rounded-2xl font-black shadow-2xl shadow-slate-300 hover:bg-blue-600 hover:-translate-y-1.5 active:scale-95 flex justify-center items-center gap-3 transition-all duration-300">
-                                    {loading ? <Loader2 className="animate-spin" /> : (isEdit ? 'LƯU THÔNG TIN' : 'XÁC NHẬN TẠO')}
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

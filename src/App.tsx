@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
   LayoutDashboard, Users, Clock, Settings, LogOut,
-  FileText, CheckSquare, Banknote, MessageCircle, CalendarDays, Key, X, Loader2
-} from 'lucide-react';
+  FileText, CheckSquare, Banknote, MessageCircle, CalendarDays, Key, X, Loader2, Menu
+} from 'lucide-react'; // Đã thêm icon Menu (Hamburger)
 import { API_BASE } from '../apiConfig';
 // Import các trang từ thư mục pages
 import { Dashboard } from './pages/Dashboard';
@@ -19,8 +19,6 @@ import Login from './pages/Login';
 // Import component chuông thông báo
 import { NotificationBell } from './pages/NotificationBell';
 
-
-
 function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isCheckingLogin, setIsCheckingLogin] = useState(true);
@@ -30,6 +28,11 @@ function App() {
     return localStorage.getItem('lastActiveTab') || 'dashboard';
   });
   const [data, setData] = useState<any[]>([]);
+
+  // ==========================================
+  // STATE MỚI: QUẢN LÝ ẨN/HIỆN SIDEBAR TRÊN MOBILE
+  // ==========================================
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // ==========================================
   // STATE CHO MODAL ĐỔI MẬT KHẨU
@@ -42,22 +45,18 @@ function App() {
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-
-
-  // 2. Cái useEffect sếp vừa gửi (Giữ nguyên để check Login)
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
       setCurrentUser(JSON.parse(savedUser));
     }
-    // Đoạn check savedTab ở đây có cũng được, không có cũng không sao 
-    // vì mình đã làm ở bước khởi tạo useState bên trên rồi.
     setIsCheckingLogin(false);
   }, []);
 
-  // 3. THÊM CÁI NÀY VÀO (QUAN TRỌNG NHẤT)
   useEffect(() => {
     localStorage.setItem('lastActiveTab', activeTab);
+    // Tự động đóng sidebar trên mobile khi chuyển tab
+    setIsSidebarOpen(false);
   }, [activeTab]);
 
   const handleLogin = (userData: any) => {
@@ -74,9 +73,6 @@ function App() {
     }
   };
 
-  // ==========================================
-  // HÀM XỬ LÝ ĐỔI MẬT KHẨU
-  // ==========================================
   const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError('');
@@ -96,14 +92,13 @@ function App() {
 
     try {
       const response = await axios.put(`${API_BASE}/api/admin/change-password`, {
-        username: currentUser.username, // Lấy username từ state đăng nhập
+        username: currentUser.username,
         oldPassword,
         newPassword
       });
 
       setPasswordSuccess(response.data.message || 'Đổi mật khẩu thành công!');
 
-      // Đợi 1.5s rồi tự động đóng form và clear data
       setTimeout(() => {
         setIsChangePasswordOpen(false);
         setOldPassword('');
@@ -119,7 +114,6 @@ function App() {
     }
   };
 
-  // FETCH DATA DASHBOARD
   useEffect(() => {
     if (!currentUser) return;
 
@@ -128,7 +122,6 @@ function App() {
         const res = await axios.get(`${API_BASE}/attendance`, {
           headers: { 'ngrok-skip-browser-warning': 'true' }
         });
-
         if (Array.isArray(res.data)) {
           setData(res.data);
         } else {
@@ -153,18 +146,41 @@ function App() {
   return (
     <div className="flex h-screen w-screen bg-[#F8FAFC] font-sans text-slate-700 overflow-hidden relative">
 
-      {/* SIDEBAR */}
-      <aside className="w-64 h-full bg-[#1E293B] text-slate-300 flex flex-col shrink-0 shadow-2xl">
-        <div className="p-6 border-b border-slate-700/50">
+      {/* ========================================== */}
+      {/* LỚP NỀN MỜ (OVERLAY) CHO MOBILE KHI MỞ SIDEBAR */}
+      {/* ========================================== */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* ========================================== */}
+      {/* SIDEBAR (Responsive) */}
+      {/* ========================================== */}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-full bg-[#1E293B] text-slate-300 flex flex-col shrink-0 shadow-2xl transition-transform duration-300 ease-in-out transform
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
+      >
+        <div className="p-6 border-b border-slate-700/50 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
               <Settings size={18} color="white" />
             </div>
             <span className="font-bold text-white text-xl tracking-tight">HRM PRO</span>
           </div>
+          {/* NÚT ĐÓNG MENU TRÊN MOBILE (chỉ hiện trên màn hình nhỏ) */}
+          <button
+            className="lg:hidden text-slate-400 hover:text-white"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
           <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Chính</p>
           <MenuBtn icon={<LayoutDashboard size={18} />} label="Tổng quan" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
           <MenuBtn icon={<Users size={18} />} label="Nhân viên" active={activeTab === 'employees'} onClick={() => setActiveTab('employees')} />
@@ -191,18 +207,17 @@ function App() {
               <span className="text-[10px] text-slate-500">{currentUser.role || 'Administrator'}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* NÚT MỞ POPUP ĐỔI MẬT KHẨU */}
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setIsChangePasswordOpen(true)}
-              className="text-slate-500 hover:text-blue-400 transition-colors cursor-pointer p-1 rounded-md hover:bg-slate-800"
+              className="text-slate-500 hover:text-blue-400 transition-colors cursor-pointer p-1.5 rounded-md hover:bg-slate-800"
               title="Đổi mật khẩu"
             >
               <Key size={16} />
             </button>
             <button
               onClick={handleLogout}
-              className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer p-1 rounded-md hover:bg-slate-800"
+              className="text-slate-500 hover:text-red-400 transition-colors cursor-pointer p-1.5 rounded-md hover:bg-slate-800"
               title="Đăng xuất"
             >
               <LogOut size={16} />
@@ -212,26 +227,37 @@ function App() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0 shadow-sm z-10">
-          <h2 className="font-bold text-lg text-slate-800">
-            {activeTab === 'dashboard' && "Bảng điều khiển tổng quan"}
-            {activeTab === 'employees' && "Quản lý nhân sự"}
-            {activeTab === 'monthly-attendance' && "Thống kê chuyên cần theo tháng"}
-            {activeTab === 'chat' && "Trò chuyện & Hỗ trợ"}
-            {activeTab === 'tasks' && "Theo dõi nhiệm vụ"}
-            {activeTab === 'leaves' && "Phê duyệt nghỉ phép"}
-            {activeTab === 'payroll' && "Quản lý lương & thưởng"}
-            {activeTab === 'config' && "Thiết lập hệ thống"}
-          </h2>
+      <div className="flex-1 flex flex-col h-full overflow-hidden w-full">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 shrink-0 shadow-sm z-10 w-full">
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* NÚT HAMBURGER (CHỈ HIỆN TRÊN MOBILE) */}
+            <button
+              className="lg:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+
+            <h2 className="font-bold text-base lg:text-lg text-slate-800 truncate max-w-[200px] sm:max-w-none">
+              {activeTab === 'dashboard' && "Bảng điều khiển tổng quan"}
+              {activeTab === 'employees' && "Quản lý nhân sự"}
+              {activeTab === 'monthly-attendance' && "Thống kê chuyên cần theo tháng"}
+              {activeTab === 'chat' && "Trò chuyện & Hỗ trợ"}
+              {activeTab === 'tasks' && "Theo dõi nhiệm vụ"}
+              {activeTab === 'leaves' && "Phê duyệt nghỉ phép"}
+              {activeTab === 'payroll' && "Quản lý lương & thưởng"}
+              {activeTab === 'config' && "Thiết lập hệ thống"}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2 lg:gap-4 shrink-0">
             <NotificationBell />
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 bg-[#F1F5F9]">
-          <div className="max-w-[1600px] mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 bg-[#F1F5F9] w-full">
+          <div className="max-w-[1600px] mx-auto w-full">
             {activeTab === 'dashboard' && <Dashboard data={data} />}
             {activeTab === 'employees' && <Employees />}
             {activeTab === 'monthly-attendance' && <AttendanceMonthly />}
@@ -244,11 +270,9 @@ function App() {
         </main>
       </div>
 
-      {/* ========================================== */}
       {/* POPUP (MODAL) ĐỔI MẬT KHẨU */}
-      {/* ========================================== */}
       {isChangePasswordOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 overflow-hidden transform transition-all">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
@@ -337,7 +361,6 @@ function App() {
   );
 }
 
-// MenuBtn component
 const MenuBtn = ({ icon, label, active, onClick, disabled }: any) => (
   <button
     onClick={onClick}
