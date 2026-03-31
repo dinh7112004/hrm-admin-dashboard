@@ -3,11 +3,18 @@ import { Users, Clock, Bell, CalendarDays, ShieldCheck, MoreVertical, MapPin, In
 import axios from 'axios';
 import { API_BASE } from '../../apiConfig';
 
-// Hàm xử lý link ảnh thông minh
+
+// Hàm xử lý link ảnh "vạn năng" cho sếp
 const getFullImageUrl = (path: string | undefined) => {
     if (!path) return "";
-    if (path.startsWith('http')) return path;
-    const baseUrl = API_BASE.replace(/\/$/, "");
+
+    // 1. Nếu là link tuyệt đối (Cloudinary, Google...) thì trả về luôn
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+    }
+
+    // 2. Nếu là link nội bộ (/uploads/...) thì mới nối API_BASE
+    const baseUrl = API_BASE.replace(/\/$/, ""); // Xóa dấu / ở cuối nếu có
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `${baseUrl}${cleanPath}`;
 };

@@ -18,6 +18,7 @@ import Login from './pages/Login';
 
 // Import component chuông thông báo
 import { NotificationBell } from './pages/NotificationBell';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -252,7 +253,10 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4 shrink-0">
-            <NotificationBell />
+            <NotificationBell onNavigate={(tab) => {
+              setActiveTab(tab);
+              setIsSidebarOpen(false);
+            }} />
           </div>
         </header>
 
@@ -357,6 +361,19 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* REACT HOT TOAST CHO THÔNG BÁO Ở GÓC DƯỚI BÊN PHẢI */}
+      <Toaster 
+        position="bottom-right" 
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#333',
+            color: '#fff',
+            borderRadius: '12px',
+          },
+        }}
+      />
     </div>
   );
 }

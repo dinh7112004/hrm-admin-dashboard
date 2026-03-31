@@ -5,6 +5,7 @@ import {
     CheckSquare, MessageSquare, BellOff
 } from 'lucide-react';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import { API_BASE } from '../../apiConfig';
 
 const formatRelativeTime = (date: string) => {
@@ -22,13 +23,17 @@ const formatRelativeTime = (date: string) => {
     return past.toLocaleDateString('vi-VN');
 };
 
-export const NotificationBell = () => {
+export const NotificationBell = ({ onNavigate }: { onNavigate?: (tab: string) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState<any[]>([]);
     // Thêm left vào state để xử lý Responsive trên Mobile
     const [coords, setCoords] = useState<{ top: number; right: number | 'auto'; left: number | 'auto' }>({ top: 0, right: 0, left: 'auto' });
     const dropdownRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
+    
+    // Quản lý thông báo mới để hiện toast
+    const prevNotificationIds = useRef<Set<string>>(new Set());
+    const isInitialFetch = useRef(true);
 
     // Tính toán vị trí thông minh hơn cho Mobile vs Desktop
     useEffect(() => {
@@ -78,6 +83,35 @@ export const NotificationBell = () => {
             });
             if (Array.isArray(res.data)) {
                 const sortedData = res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                
+                // --- Xử lý logic hiển thị Toast ---
+                if (!isInitialFetch.current) {
+                    const newNotifs = sortedData.filter(n => !prevNotificationIds.current.has(n._id));
+                    newNotifs.forEach(n => {
+                        toast(
+                            (t) => (
+                                <div className="cursor-pointer flex flex-col gap-1 w-full" onClick={() => {
+                                    toast.dismiss(t.id);
+                                    handleNotificationNavigation(n);
+                                }}>
+                                    <span className="font-bold text-sm text-slate-800 line-clamp-1">{n.title}</span>
+                                    <span className="text-xs text-slate-600 line-clamp-2">{n.message}</span>
+                                </div>
+                            ),
+                            {
+                                duration: 5000,
+                                position: 'top-right',
+                                style: { background: '#fff', color: '#333', border: '1px solid #e2e8f0', padding: '12px 16px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }
+                            }
+                        );
+                    });
+                } else {
+                    isInitialFetch.current = false;
+                }
+
+                sortedData.forEach(n => prevNotificationIds.current.add(n._id));
+                // ------------------------------------
+
                 setNotifications(sortedData);
             }
         } catch (err) {
@@ -112,6 +146,27 @@ export const NotificationBell = () => {
         } catch (error) {
             console.error("Lỗi đánh dấu tất cả:", error);
         }
+    };
+
+    const handleNotificationNavigation = (notif: any) => {
+        // Nếu truyền `onNavigate`, chuyển sang tab tương ứng
+        if (onNavigate) {
+            let targetTab = 'dashboard';
+            switch (notif.type) {
+                case 'ATTENDANCE': targetTab = 'monthly-attendance'; break;
+                case 'LEAVE': targetTab = 'leaves'; break;
+                case 'CHAT': targetTab = 'chat'; break;
+                case 'TASK': targetTab = 'tasks'; break;
+                default: targetTab = 'dashboard'; break;
+            }
+            onNavigate(targetTab);
+            setIsOpen(false); // Đóng popup chuông
+        }
+    };
+
+    const onNotificationClick = (notif: any) => {
+        handleReadNotification(notif._id, notif.isRead);
+        handleNotificationNavigation(notif);
     };
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -167,7 +222,7 @@ export const NotificationBell = () => {
                             return (
                                 <div
                                     key={notif._id}
-                                    onClick={() => handleReadNotification(notif._id, notif.isRead)}
+                                    onClick={() => onNotificationClick(notif)}
                                     className={`relative p-4 sm:p-5 transition-all flex gap-3 sm:gap-4 hover:bg-slate-50 cursor-pointer ${!notif.isRead ? 'bg-blue-50/60' : 'bg-white'}`}
                                 >
                                     <div className={`mt-0.5 h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-xl ${style.bg} ${style.text} border ${style.border} flex items-center justify-center shadow-sm`}>
