@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Clock, Bell, CalendarDays, ShieldCheck, MoreVertical, MapPin, Info, X, CheckCircle, MessageSquare, UserX, CalendarOff, ChevronRight, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Users, Clock, Bell, CalendarDays, ShieldCheck, MoreVertical, MapPin, Info, X, CheckCircle, MessageSquare, UserX, CalendarOff, ChevronRight, Sparkles, Image as ImageIcon, Eye, Check } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE } from '../../apiConfig';
 
@@ -63,6 +63,9 @@ const StatCard = ({ title, value, sub, icon, color, onClick }: any) => {
 export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: () => void }) => {
     const [selectedRecord, setSelectedRecord] = useState<any>(null);
     const [adminReplyText, setAdminReplyText] = useState("");
+    
+    // TRẠNG THÁI MỞ MODAL DANH SÁCH CHỜ DUYỆT
+    const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
 
     const [filterDate, setFilterDate] = useState(() => {
         const today = new Date();
@@ -142,11 +145,18 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
 
     const displayTableData = [...filteredAttendance].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    const workingRecords = filteredAttendance.filter((item: any) => item.type !== 'LEAVE' && item.status !== 'LEAVE');
+    const allWorkingRecords = filteredAttendance.filter((item: any) => item.type !== 'LEAVE' && item.status !== 'LEAVE');
+    
+    // Đã sửa: Lọc trùng lặp để 1 người chỉ xuất hiện 1 lần trong danh sách "Đi làm" dù họ quẹt thẻ nhiều lần
+    const workingRecords = allWorkingRecords.filter((val: any, index: number, self: any[]) => 
+        index === self.findIndex((t) => (
+            (t.userId?._id || t.userId) === (val.userId?._id || val.userId)
+        ))
+    );
 
     // 4. LOGIC ĐI MUỘN ĐỘNG THEO SYSCONFIG
     const [configHour, configMinute] = sysConfig.startTime.split(':').map(Number);
-    const lateRecords = workingRecords.filter((item: any) => {
+    const allLateRecords = allWorkingRecords.filter((item: any) => {
         if (!item.checkInTime) return false;
         const checkInDate = new Date(item.checkInTime);
         const h = checkInDate.getHours();
@@ -154,6 +164,13 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
 
         return h > configHour || (h === configHour && m > configMinute);
     });
+
+    // Lọc trùng lặp người đi muộn
+    const lateRecords = allLateRecords.filter((val: any, index: number, self: any[]) => 
+        index === self.findIndex((t) => (
+            (t.userId?._id || t.userId) === (val.userId?._id || val.userId)
+        ))
+    );
 
     const userIdsWithAttendance = new Set(filteredAttendance.map(item => item.userId?._id || item.userId));
     const absentUsersList = allUsers.filter(user => !userIdsWithAttendance.has(user._id));
@@ -217,11 +234,32 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
         } catch (err) { alert("Lỗi khi xử lý duyệt!"); }
     }
 
+    // DUYỆT NHANH TỪNG ĐƠN TẠI MODAL "XEM CHI TIẾT"
+    const handleQuickApproveSingleAttendance = async (id: string, isApprove: boolean) => {
+        try {
+            const replyMsg = isApprove ? "Đã duyệt nhanh" : "Từ chối (Duyệt nhanh)";
+            await axios.put(`${API_BASE}/attendance/${id}/approve`, { reply: replyMsg }, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+            
+            if (refreshData) refreshData();
+            fetchExtraData();
+        } catch (err) { alert("Lỗi khi thao tác duyệt điểm danh!"); }
+    };
+
+    const handleQuickApproveSingleLeave = async (id: string, isApprove: boolean) => {
+        try {
+            const statusToUpdate = isApprove ? 'APPROVED' : 'REJECTED';
+            await axios.patch(`${API_BASE}/leaves/${id}/status`, { status: statusToUpdate }, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+            
+            if (refreshData) refreshData();
+            fetchExtraData();
+        } catch (err) { alert("Lỗi khi xử lý đơn nghỉ phép!"); }
+    };
+
     const getModalConfig = () => {
         switch (activeListType) {
             case 'TOTAL': return { title: 'Tổng nhân sự', data: allUsers, color: 'blue', icon: <Users size={22} />, isUserOnly: true };
-            case 'WORKING': return { title: 'Đang đi làm', data: workingRecords, color: 'emerald', icon: <Clock size={22} />, isUserOnly: false };
-            case 'LATE': return { title: 'Danh sách đi muộn', data: lateRecords, color: 'rose', icon: <Bell size={22} />, isUserOnly: false };
+            case 'WORKING': return { title: 'Đang đi làm', data: allWorkingRecords, color: 'emerald', icon: <Clock size={22} />, isUserOnly: false };
+            case 'LATE': return { title: 'Danh sách đi muộn', data: allLateRecords, color: 'rose', icon: <Bell size={22} />, isUserOnly: false };
             case 'LEAVE': return { title: 'Nghỉ phép (Có đơn)', data: leaveRecords, color: 'purple', icon: <CalendarDays size={22} />, isUserOnly: false };
             case 'ABSENT': return { title: 'Chưa điểm danh', data: absentUsersList, color: 'amber', icon: <UserX size={22} />, isUserOnly: true };
             default: return null;
@@ -253,9 +291,14 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
                     </p>
                 </div>
                 {totalPending > 0 && (
-                    <button onClick={handleApproveAll} className="relative z-10 bg-white text-blue-700 text-sm px-8 py-3.5 rounded-2xl font-black shadow-xl hover:shadow-2xl hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all duration-300 w-full md:w-auto flex justify-center items-center gap-2 mt-4 md:mt-0">
-                        <CheckCircle size={18} /> Duyệt tất cả
-                    </button>
+                    <div className="relative z-10 flex flex-col md:flex-row gap-3 mt-4 md:mt-0 w-full md:w-auto">
+                        <button onClick={() => setIsPendingModalOpen(true)} className="bg-white text-blue-700 text-sm px-6 py-3.5 rounded-2xl font-black shadow-xl hover:shadow-2xl hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all duration-300 w-full md:w-auto flex justify-center items-center gap-2">
+                            <Eye size={18} /> Xem & Duyệt Chi Tiết
+                        </button>
+                        <button onClick={handleApproveAll} className="bg-blue-700 border border-blue-500 text-white text-sm px-6 py-3.5 rounded-2xl font-bold shadow-xl hover:shadow-2xl hover:bg-blue-800 active:scale-95 transition-all w-full md:w-auto flex justify-center items-center gap-2">
+                            <CheckCircle size={18} /> Duyệt ráo (Bỏ qua)
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -496,8 +539,9 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
                                 <ul className="space-y-3">
                                     {modalConfig.data.map((item: any, idx: number) => {
                                         const userObj = modalConfig.isUserOnly ? item : (item.userId || {});
-                                        const name = userObj.name || 'Chưa cập nhật tên';
-                                        const phone = userObj.phone || 'Chưa có SĐT';
+                                        const foundUser = allUsers.find(u => u._id === (userObj._id || userObj));
+                                        const name = userObj.name || foundUser?.name || 'Chưa cập nhật tên';
+                                        const phone = userObj.phone || foundUser?.phone || 'Chưa có SĐT';
 
                                         return (
                                             <li key={item._id || idx} className="flex items-center justify-between p-3 md:p-4 bg-white border border-slate-100 rounded-[16px] md:rounded-[20px] shadow-sm hover:shadow-md hover:border-slate-200 transition-all duration-300 group">
@@ -523,12 +567,24 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
                                                     </div>
                                                 )}
 
-                                                {!modalConfig.isUserOnly && activeListType !== 'LEAVE' && item.checkInTime && (
-                                                    <div className="text-right bg-slate-50 px-2.5 md:px-3 py-1.5 rounded-xl border border-slate-100 shrink-0 ml-2">
-                                                        <span className="text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5 whitespace-nowrap">Giờ vào</span>
-                                                        <p className={`text-xs md:text-sm font-black whitespace-nowrap ${activeListType === 'LATE' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                            {new Date(item.checkInTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-                                                        </p>
+                                                {!modalConfig.isUserOnly && activeListType !== 'LEAVE' && (
+                                                    <div className="flex flex-col gap-1 items-end shrink-0 ml-2">
+                                                        {item.checkInTime && (
+                                                            <div className="text-right bg-emerald-50 px-2.5 md:px-3 py-1 rounded-xl border border-emerald-100">
+                                                                <span className="text-[8px] font-black text-emerald-600/70 uppercase tracking-widest block mb-0.5 whitespace-nowrap">Vào ca</span>
+                                                                <p className={`text-xs md:text-sm font-black whitespace-nowrap ${activeListType === 'LATE' ? 'text-rose-600' : 'text-emerald-700'}`}>
+                                                                    {new Date(item.checkInTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        <div className={`text-right px-2.5 md:px-3 py-1 rounded-xl border ${item.checkOutTime ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-100'}`}>
+                                                            <span className={`text-[8px] font-black uppercase tracking-widest block mb-0.5 whitespace-nowrap ${item.checkOutTime ? 'text-blue-600/70' : 'text-slate-400'}`}>
+                                                                Ra ca
+                                                            </span>
+                                                            <p className={`text-xs md:text-sm font-black whitespace-nowrap ${item.checkOutTime ? 'text-blue-700' : 'text-slate-400'}`}>
+                                                                {item.checkOutTime ? new Date(item.checkOutTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa ra'}
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </li>
@@ -551,6 +607,146 @@ export const Dashboard = ({ data, refreshData }: { data: any[], refreshData?: ()
                                 className={`w-full py-3 md:py-4 rounded-xl md:rounded-2xl text-sm md:text-base font-bold text-${modalConfig.color}-700 bg-${modalConfig.color}-50 hover:bg-${modalConfig.color}-100 transition-all`}
                             >
                                 Đóng lại
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL 3: DANH SÁCH DUYỆT CHI TIẾT */}
+            {isPendingModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[4px] flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+                    <div className="bg-[#f8fafc] rounded-[24px] md:rounded-[32px] w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 slide-in-from-bottom-4 duration-400">
+                        {/* Header của Modal */}
+                        <div className="p-6 md:p-8 border-b border-slate-200 bg-white flex justify-between items-center rounded-t-[24px] md:rounded-t-[32px]">
+                            <div>
+                                <h3 className="font-black text-slate-800 text-xl md:text-2xl flex items-center gap-3 tracking-tight">
+                                    <div className="p-2.5 md:p-3 bg-blue-100 text-blue-600 rounded-xl md:rounded-2xl shadow-sm">
+                                        <Sparkles size={24} />
+                                    </div>
+                                    Xét & Duyệt Đơn
+                                </h3>
+                                <p className="mt-2 text-sm font-medium text-slate-500">
+                                    Sếp đang xem danh sách gồm <span className="font-bold text-amber-600">{data.filter(i => i.status === 'PENDING').length} đơn check-in muộn/ngoại lệ</span> và <span className="text-purple-600 font-bold">{leavesData.filter(i => i.status === 'PENDING').length} đơn xin nghỉ phép</span> cần xử lý.
+                                </p>
+                            </div>
+                            <button onClick={() => setIsPendingModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all self-start">
+                                <X size={20} className="md:w-6 md:h-6" />
+                            </button>
+                        </div>
+
+                        {/* Nội dung danh sách 2 cột: Điểm Danh / Nghỉ phép */}
+                        <div className="p-4 md:p-6 overflow-y-auto flex-1 custom-scrollbar w-full">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                                
+                                {/* CỘT TRÁI: ĐIỂM DANH */}
+                                <div className="space-y-4">
+                                    <div className="bg-amber-100/50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
+                                        <Clock className="text-amber-600" size={24} />
+                                        <h4 className="font-black text-amber-900 text-[15px] tracking-tight">Check-in ngoại lệ / Đi muộn</h4>
+                                    </div>
+
+                                    {data.filter(i => i.status === 'PENDING').length > 0 ? (
+                                        <ul className="space-y-3">
+                                            {data.filter(i => i.status === 'PENDING').map((item: any) => (
+                                                <li key={item._id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-amber-300 transition-colors">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-black flex items-center justify-center text-xs">
+                                                                {(item.userId?.name || "U").charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-sm text-slate-800">{item.userId?.name || 'Nhân viên vô danh'}</p>
+                                                                <p className="text-[10px] text-slate-400 font-bold">{new Date(item.checkInTime).toLocaleString('vi-VN')}</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className={`text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider ${item.type === 'REMOTE' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+                                                            {item.type === 'REMOTE' ? 'LÀM REMOTE' : 'CÔNG TY'}
+                                                        </span>
+                                                    </div>
+                                                    {item.note && (
+                                                        <div className="mb-3 p-2 bg-amber-50/50 rounded-lg border border-amber-100">
+                                                            <p className="text-[11px] font-medium text-amber-800 italic">" {item.note} "</p>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+                                                        <button onClick={() => handleQuickApproveSingleAttendance(item._id, true)} className="flex-1 py-2 text-xs font-black bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-xl transition-all border border-emerald-200 flex items-center justify-center gap-1.5">
+                                                            <Check size={14} /> Duyệt Điểm Danh
+                                                        </button>
+                                                        <button onClick={() => handleQuickApproveSingleAttendance(item._id, false)} className="px-3 py-2 text-xs font-bold bg-white text-rose-500 hover:bg-rose-50 rounded-xl transition-all border border-rose-200 flex items-center justify-center gap-1">
+                                                            <X size={14} /> Từ chối
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-slate-400">
+                                            <CheckCircle className="text-slate-300 mb-2" size={32} />
+                                            <p className="text-sm font-bold">Không có check-in nào chờ duyệt</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* CỘT PHẢI: NGHỈ PHÉP */}
+                                <div className="space-y-4">
+                                    <div className="bg-purple-100/50 border border-purple-200 rounded-2xl p-4 flex items-center gap-3">
+                                        <CalendarOff className="text-purple-600" size={24} />
+                                        <h4 className="font-black text-purple-900 text-[15px] tracking-tight">Đơn xin nghỉ phép</h4>
+                                    </div>
+
+                                    {leavesData.filter(i => i.status === 'PENDING').length > 0 ? (
+                                        <ul className="space-y-3">
+                                            {leavesData.filter(i => i.status === 'PENDING').map((item: any) => (
+                                                <li key={item._id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-purple-300 transition-colors">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 font-black flex items-center justify-center text-xs">
+                                                                {(item.userId?.name || "U").charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-sm text-slate-800">{item.userId?.name || 'Nhân viên vô danh'}</p>
+                                                                <p className="text-[10px] text-slate-400 font-bold">{item.startDate} đến {item.endDate}</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-[9px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider bg-purple-50 text-purple-600 border border-purple-100">
+                                                            {item.leaveType}
+                                                        </span>
+                                                    </div>
+                                                    {item.reason && (
+                                                        <div className="mb-3 p-2 bg-purple-50/50 rounded-lg border border-purple-100">
+                                                            <p className="text-[11px] font-medium text-purple-800 italic">" {item.reason} "</p>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-2 pt-2 border-t border-slate-50">
+                                                        <button onClick={() => handleQuickApproveSingleLeave(item._id, true)} className="flex-1 py-2 text-xs font-black bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-xl transition-all border border-emerald-200 flex items-center justify-center gap-1.5">
+                                                            <Check size={14} /> Duyệt Cho Nghỉ
+                                                        </button>
+                                                        <button onClick={() => handleQuickApproveSingleLeave(item._id, false)} className="px-3 py-2 text-xs font-bold bg-white text-rose-500 hover:bg-rose-50 rounded-xl transition-all border border-rose-200 flex items-center justify-center gap-1">
+                                                            <X size={14} /> Cấm nghỉ
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-slate-400">
+                                            <CheckCircle className="text-slate-300 mb-2" size={32} />
+                                            <p className="text-sm font-bold">Không có đơn xin nghỉ nào chờ duyệt</p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        {/* Footer của Modal */}
+                        <div className="p-4 md:p-6 bg-white border-t border-slate-100 flex justify-end">
+                            <button
+                                onClick={() => setIsPendingModalOpen(false)}
+                                className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-all"
+                            >
+                                Đóng Danh Sách Ngay Bây Giờ
                             </button>
                         </div>
                     </div>
