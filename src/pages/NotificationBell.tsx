@@ -30,7 +30,7 @@ export const NotificationBell = ({ onNavigate }: { onNavigate?: (tab: string) =>
     const [coords, setCoords] = useState<{ top: number; right: number | 'auto'; left: number | 'auto' }>({ top: 0, right: 0, left: 'auto' });
     const dropdownRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
-    
+
     // Quản lý thông báo mới để hiện toast
     const prevNotificationIds = useRef<Set<string>>(new Set());
     const isInitialFetch = useRef(true);
@@ -83,7 +83,7 @@ export const NotificationBell = ({ onNavigate }: { onNavigate?: (tab: string) =>
             });
             if (Array.isArray(res.data)) {
                 const sortedData = res.data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                
+
                 // --- Xử lý logic hiển thị Toast ---
                 if (!isInitialFetch.current) {
                     const newNotifs = sortedData.filter(n => !prevNotificationIds.current.has(n._id));
@@ -149,18 +149,26 @@ export const NotificationBell = ({ onNavigate }: { onNavigate?: (tab: string) =>
     };
 
     const handleNotificationNavigation = (notif: any) => {
-        // Nếu truyền `onNavigate`, chuyển sang tab tương ứng
         if (onNavigate) {
-            let targetTab = 'dashboard';
+            let targetCommand = 'dashboard';
             switch (notif.type) {
-                case 'ATTENDANCE': targetTab = 'monthly-attendance'; break;
-                case 'LEAVE': targetTab = 'leaves'; break;
-                case 'CHAT': targetTab = 'chat'; break;
-                case 'TASK': targetTab = 'tasks'; break;
-                default: targetTab = 'dashboard'; break;
+                case 'ATTENDANCE': targetCommand = 'monthly-attendance'; break;
+                case 'LEAVE': targetCommand = 'leaves'; break;
+                case 'TASK': targetCommand = 'tasks'; break;
+                case 'CHAT':
+                    // TRUYỀN ĐỦ 3 PHẦN: chat : id_người_gửi : id_tin_nhắn
+                    if (notif.senderId && notif.messageId) {
+                        targetCommand = `chat:${notif.senderId}:${notif.messageId}`;
+                    } else if (notif.senderId) {
+                        targetCommand = `chat:${notif.senderId}`;
+                    } else {
+                        targetCommand = 'chat';
+                    }
+                    break;
+                default: targetCommand = 'dashboard'; break;
             }
-            onNavigate(targetTab);
-            setIsOpen(false); // Đóng popup chuông
+            onNavigate(targetCommand);
+            setIsOpen(false);
         }
     };
 
@@ -172,17 +180,18 @@ export const NotificationBell = ({ onNavigate }: { onNavigate?: (tab: string) =>
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     const getNotificationStyle = (type: string) => {
+        const size = 22;
         switch (type) {
             case 'ATTENDANCE':
-                return { icon: <Clock size={16} />, bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200', label: 'ĐIỂM DANH' };
+                return { icon: <Clock size={size} />, text: 'text-amber-600', label: 'ĐIỂM DANH' };
             case 'LEAVE':
-                return { icon: <CalendarDays size={16} />, bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200', label: 'NGHỈ PHÉP' };
+                return { icon: <CalendarDays size={size} />, text: 'text-purple-600', label: 'NGHỈ PHÉP' };
             case 'CHAT':
-                return { icon: <MessageSquare size={16} />, bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', label: 'TIN NHẮN' };
+                return { icon: <MessageSquare size={size} />, text: 'text-blue-600', label: 'TIN NHẮN' };
             case 'TASK':
-                return { icon: <CheckSquare size={16} />, bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', label: 'CÔNG VIỆC' };
+                return { icon: <CheckSquare size={size} />, text: 'text-emerald-600', label: 'CÔNG VIỆC' };
             default:
-                return { icon: <Info size={16} />, bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', label: 'HỆ THỐNG' };
+                return { icon: <Info size={size} />, text: 'text-slate-600', label: 'HỆ THỐNG' };
         }
     };
 
@@ -225,7 +234,7 @@ export const NotificationBell = ({ onNavigate }: { onNavigate?: (tab: string) =>
                                     onClick={() => onNotificationClick(notif)}
                                     className={`relative p-4 sm:p-5 transition-all flex gap-3 sm:gap-4 hover:bg-slate-50 cursor-pointer ${!notif.isRead ? 'bg-blue-50/60' : 'bg-white'}`}
                                 >
-                                    <div className={`mt-0.5 h-10 w-10 sm:h-11 sm:w-11 shrink-0 rounded-xl ${style.bg} ${style.text} border ${style.border} flex items-center justify-center shadow-sm`}>
+                                    <div className={`mt-0.5 h-10 w-10 sm:h-11 sm:w-11 shrink-0 flex items-center justify-center ${style.text}`}>
                                         {style.icon}
                                     </div>
                                     <div className="flex-1 space-y-1">

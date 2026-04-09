@@ -29,7 +29,8 @@ function App() {
     return localStorage.getItem('lastActiveTab') || 'dashboard';
   });
   const [data, setData] = useState<any[]>([]);
-
+  const [openUserId, setOpenUserId] = useState<string | null>(null);
+  const [openMessageId, setOpenMessageId] = useState<string | null>(null);
   // ==========================================
   // STATE MỚI: QUẢN LÝ ẨN/HIỆN SIDEBAR TRÊN MOBILE
   // ==========================================
@@ -66,7 +67,7 @@ function App() {
   };
 
   const handleLogout = () => {
-    if (window.confirm("Sếp có chắc chắn muốn đăng xuất không?")) {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
       localStorage.removeItem('currentUser');
       localStorage.removeItem('lastActiveTab');
       setCurrentUser(null);
@@ -253,8 +254,24 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4 shrink-0">
-            <NotificationBell onNavigate={(tab) => {
-              setActiveTab(tab);
+
+            <NotificationBell onNavigate={(command) => {
+              if (command.startsWith('chat:')) {
+                // SỬA LẠI ĐOẠN NÀY ĐỂ LẤY CẢ USER ID LẪN MESSAGE ID
+                const parts = command.split(':');
+                const userId = parts[1];
+                const messageId = parts[2]; // Lấy mảnh thứ 3 (nếu có)
+
+                console.log("App đang giữ User ID:", userId, "| Message ID:", messageId);
+
+                setOpenUserId(userId);
+                if (messageId) {
+                  setOpenMessageId(messageId);
+                }
+                setActiveTab('chat');
+              } else {
+                setActiveTab(command);
+              }
               setIsSidebarOpen(false);
             }} />
           </div>
@@ -265,7 +282,14 @@ function App() {
             {activeTab === 'dashboard' && <Dashboard data={data} />}
             {activeTab === 'employees' && <Employees />}
             {activeTab === 'monthly-attendance' && <AttendanceMonthly />}
-            {activeTab === 'chat' && <Chat />}
+            {activeTab === 'chat' && (
+              <Chat
+                openUserId={openUserId}
+                setOpenUserId={setOpenUserId}
+                openMessageId={openMessageId}        // <--- THÊM DÒNG NÀY
+                setOpenMessageId={setOpenMessageId}  // <--- THÊM DÒNG NÀY
+              />
+            )}
             {activeTab === 'config' && <ConfigPage />}
             {activeTab === 'tasks' && <Tasks />}
             {activeTab === 'leaves' && <Leaves />}
@@ -363,8 +387,8 @@ function App() {
       )}
 
       {/* REACT HOT TOAST CHO THÔNG BÁO Ở GÓC DƯỚI BÊN PHẢI */}
-      <Toaster 
-        position="bottom-right" 
+      <Toaster
+        position="bottom-right"
         toastOptions={{
           duration: 4000,
           style: {
