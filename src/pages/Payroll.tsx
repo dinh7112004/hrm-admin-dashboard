@@ -20,6 +20,8 @@ interface IPayroll {
     bonus: number;
     fine: number;
     netSalary: number;
+    actualWorkDays?: number;  // <-- MỚI THÊM
+    actualWorkHours?: number;
 }
 
 export const Payroll = () => {
@@ -30,6 +32,7 @@ export const Payroll = () => {
     // Modal State
     const [showModal, setShowModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [selectedRecord, setSelectedRecord] = useState<IPayroll | null>(null);
     const [adjData, setAdjData] = useState({
         bonusAmount: 0,
         bonusReason: '',
@@ -82,7 +85,9 @@ export const Payroll = () => {
                     baseSalary: base,
                     bonus: bonus,
                     fine: fine,
-                    netSalary: netSalary
+                    netSalary: netSalary,
+                    actualWorkDays: userPayroll?.actualWorkDays || 0,   // <-- MỚI THÊM
+                    actualWorkHours: userPayroll?.actualWorkHours || 0
                 };
             });
 
@@ -97,11 +102,13 @@ export const Payroll = () => {
     useEffect(() => { fetchData(); }, [currentDate]);
 
     // 2. MỞ MODAL & LẤY THÔNG TIN TỪ API THẬT (Chuyên cần + Nghỉ phép)
-    const openAdjustmentModal = async (user: any) => {
+    const openAdjustmentModal = async (p: IPayroll) => {
+        const user = p.userId;
+        if (!user) return;
         setSelectedUser(user);
+        setSelectedRecord(p); // <-- MỚI THÊM: Lưu lại record để lấy số giờ
         setShowModal(true);
         setLoadingStats(true);
-
         // Reset form nhập
         setAdjData({ bonusAmount: 0, bonusReason: '', fineAmount: 0, fineReason: '' });
 
@@ -266,7 +273,7 @@ export const Payroll = () => {
                                         <td className="px-4 md:px-6 py-4 font-black text-teal-700 text-base md:text-lg whitespace-nowrap">{p.netSalary.toLocaleString()}đ</td>
                                         <td className="px-4 md:px-6 py-4 text-right">
                                             <button
-                                                onClick={() => openAdjustmentModal(p.userId)}
+                                                onClick={() => openAdjustmentModal(p)}
                                                 className="bg-slate-50 text-slate-500 p-2 md:p-2.5 rounded-xl hover:bg-teal-600 hover:text-white transition-all shadow-sm">
                                                 <PlusCircle size={18} className="md:w-5 md:h-5" />
                                             </button>
@@ -306,11 +313,16 @@ export const Payroll = () => {
                                 {loadingStats ? (
                                     <div className="flex justify-center p-4"><Loader2 className="animate-spin text-teal-500" /></div>
                                 ) : (
-                                    <div className="grid grid-cols-3 gap-2 md:gap-3">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
                                         <div className="bg-blue-50/50 border border-blue-100 rounded-xl md:rounded-2xl p-3 md:p-4 text-center">
                                             <Briefcase size={18} className="text-blue-500 mx-auto mb-1.5 md:mb-2 md:w-5 md:h-5" />
-                                            <div className="text-[9px] md:text-[10px] font-black text-blue-800/60 uppercase">Ngày công</div>
-                                            <div className="text-lg md:text-xl font-black text-blue-700">{attendanceStats.workDays}</div>
+                                            <div className="text-[9px] md:text-[10px] font-black text-blue-800/60 uppercase">Công tính lương</div>
+                                            <div className="text-lg md:text-xl font-black text-blue-700">{selectedRecord?.actualWorkDays || 0}</div>
+                                        </div>
+                                        <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl md:rounded-2xl p-3 md:p-4 text-center">
+                                            <Clock size={18} className="text-indigo-500 mx-auto mb-1.5 md:mb-2 md:w-5 md:h-5" />
+                                            <div className="text-[9px] md:text-[10px] font-black text-indigo-800/60 uppercase">Tổng giờ làm</div>
+                                            <div className="text-lg md:text-xl font-black text-indigo-700">{selectedRecord?.actualWorkHours || 0} <span className="text-xs md:text-sm">h</span></div>
                                         </div>
                                         <div className="bg-orange-50/50 border border-orange-100 rounded-xl md:rounded-2xl p-3 md:p-4 text-center">
                                             <Clock size={18} className="text-orange-500 mx-auto mb-1.5 md:mb-2 md:w-5 md:h-5" />
