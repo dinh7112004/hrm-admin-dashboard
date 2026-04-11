@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
     ChevronLeft, ChevronRight, FileSpreadsheet, Search,
-    Users, AlertCircle, CheckCircle2, X, Clock, Calendar, Info, ChevronRightCircle
+    Users, AlertCircle, CheckCircle2, X, Clock, Calendar, Info, 
+    ChevronRightCircle, TrendingUp, UserCheck, UserX, Clock9
 } from 'lucide-react';
 
 import { API_BASE } from '../../apiConfig';
@@ -105,7 +106,7 @@ export default function AttendanceMonthly() {
         if (list.length === 0) return <EmptyState msg={emptyMsg} />;
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {list.map((u, i) => {
                     let extraInfo = "";
                     if (kpiModal.type === 'late') {
@@ -116,17 +117,17 @@ export default function AttendanceMonthly() {
 
                     return (
                         <div key={i} onClick={() => { setKpiModal(null); setSelectedUser(u); setActiveTab(kpiModal.type === 'absent' ? 'absent' : 'late'); }}
-                            className="flex justify-between items-center p-3 md:p-4 bg-white border border-gray-100 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md hover:border-[#7C3AED] cursor-pointer transition-all group">
-                            <div className="flex items-center gap-3 md:gap-4">
-                                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center font-bold text-white text-sm md:text-base ${kpiModal.type === 'late' ? 'bg-[#EF4444]' : kpiModal.type === 'absent' ? 'bg-gray-400' : 'bg-[#7C3AED]'}`}>
+                            className="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-3xl shadow-sm hover:shadow-xl hover:border-indigo-200 cursor-pointer transition-all duration-300 group">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-base shadow-lg ${kpiModal.type === 'late' ? 'bg-rose-500 shadow-rose-100' : kpiModal.type === 'absent' ? 'bg-slate-400 shadow-slate-100' : 'bg-indigo-500 shadow-indigo-100'}`}>
                                     {u.name?.charAt(0)}
                                 </div>
                                 <div>
-                                    <p className="font-bold text-sm text-[#1E1E2D] group-hover:text-[#7C3AED] transition-colors">{u.name}</p>
-                                    <p className="text-[10px] md:text-[11px] font-medium text-[#A0A0B0] mt-0.5 uppercase tracking-wide">{u.userId}</p>
+                                    <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{u.name}</p>
+                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{u.userId}</p>
                                 </div>
                             </div>
-                            {extraInfo && <span className={`text-[10px] md:text-[11px] font-bold px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl ${kpiModal.type === 'late' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500'}`}>{extraInfo}</span>}
+                            {extraInfo && <span className={`text-[11px] font-black px-4 py-2 rounded-2xl ${kpiModal.type === 'late' ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-500'}`}>{extraInfo}</span>}
                         </div>
                     );
                 })}
@@ -135,90 +136,103 @@ export default function AttendanceMonthly() {
     };
 
     return (
-        <div className="bg-[#F4F5F9] min-h-screen p-3 md:p-8 font-sans text-[#1E1E2D]">
-            <div className="max-w-[1650px] mx-auto space-y-4 md:space-y-8">
+        <div className="bg-[#F8FAFC] min-h-screen p-4 md:p-10 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-700">
+            <div className="max-w-[1600px] mx-auto space-y-8">
 
                 {/* HEADER */}
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white p-4 md:p-6 rounded-[20px] md:rounded-[32px] shadow-sm border border-gray-50 gap-4 lg:gap-0">
-                    <div className="flex items-center gap-3 md:gap-5">
-                        <div className="p-3 md:p-4 bg-[#F3EFFF] rounded-xl md:rounded-2xl text-[#7C3AED]">
-                            <Calendar size={24} className="md:w-7 md:h-7" strokeWidth={2.5} />
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 gap-6">
+                    <div className="flex items-center gap-6">
+                        <div className="p-5 bg-indigo-500 rounded-[24px] text-white shadow-xl shadow-indigo-100">
+                            <Calendar size={28} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1E1E2D]">Bảng Công Tổng Hợp</h1>
-                            <p className="text-[11px] md:text-[13px] font-medium text-[#A0A0B0] mt-0.5 md:mt-1">Báo cáo dữ liệu tháng {month}/{year}</p>
+                            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">Bảng Công Tổng Hợp</h1>
+                            <div className="flex items-center gap-2 mt-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">Tháng {month}/{year} • <span className="text-slate-600">Dữ liệu thời gian thực</span></p>
+                            </div>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-4 w-full lg:w-auto">
-                        <div className="flex items-center justify-between lg:justify-center w-full lg:w-auto bg-[#F4F5F9] rounded-xl md:rounded-2xl p-1.5">
-                            <button onClick={() => setMonth(m => m === 1 ? 12 : m - 1)} className="p-2 md:p-2.5 bg-white shadow-sm rounded-lg md:rounded-xl text-gray-600 hover:text-[#7C3AED] transition-all"><ChevronLeft size={18} className="md:w-5 md:h-5" /></button>
-                            <div className="px-4 md:px-6 text-center min-w-[120px] md:min-w-[140px]">
-                                <p className="text-[13px] md:text-[15px] font-bold text-[#1E1E2D]">Tháng {month < 10 ? `0${month}` : month} / {year}</p>
+                        <div className="flex items-center bg-slate-50 rounded-3xl p-2 border border-slate-100 shadow-inner">
+                            <button onClick={() => setMonth(m => m === 1 ? 12 : m - 1)} className="p-3 bg-white shadow-sm rounded-2xl text-slate-600 hover:text-indigo-600 transition-all hover:scale-105 active:scale-95"><ChevronLeft size={20} strokeWidth={3} /></button>
+                            <div className="px-8 text-center min-w-[160px]">
+                                <p className="text-base font-black text-slate-900">Tháng {month < 10 ? `0${month}` : month} • {year}</p>
                             </div>
-                            <button onClick={() => setMonth(m => m === 12 ? 1 : m + 1)} className="p-2 md:p-2.5 bg-white shadow-sm rounded-lg md:rounded-xl text-gray-600 hover:text-[#7C3AED] transition-all"><ChevronRight size={18} className="md:w-5 md:h-5" /></button>
+                            <button onClick={() => setMonth(m => m === 12 ? 1 : m + 1)} className="p-3 bg-white shadow-sm rounded-2xl text-slate-600 hover:text-indigo-600 transition-all hover:scale-105 active:scale-95"><ChevronRight size={20} strokeWidth={3} /></button>
                         </div>
                     </div>
                 </div>
 
                 {/* THỐNG KÊ (KPI CARDS) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8">
                     <div onClick={() => setKpiModal({ type: 'total', subTab: 'all' })} className="cursor-pointer">
-                        <MetricCard label="Tổng Nhân Sự" value={employees.length} sub="Xem danh sách" type="primary" />
+                        <MetricCard label="Tổng Nhân Sự" value={employees.length} sub="Danh sách" type="primary" icon={Users} />
                     </div>
                     <div onClick={() => setKpiModal({ type: 'late', subTab: 'today' })} className="cursor-pointer">
-                        <MetricCard label="Đi Muộn Hôm Nay" value={lateTodayCount} sub="Bấm để xem chi tiết" type="danger" />
+                        <MetricCard label="Đi Muộn Hôm Nay" value={lateTodayCount} sub="Chi tiết" type="danger" icon={Clock9} />
                     </div>
                     <div onClick={() => setKpiModal({ type: 'absent', subTab: 'today' })} className="cursor-pointer">
-                        <MetricCard label="Vắng Hôm Nay" value={absentTodayCount} sub="Bấm để xem chi tiết" type="neutral" />
+                        <MetricCard label="Vắng Hôm Nay" value={absentTodayCount} sub="Chi tiết" type="neutral" icon={UserX} />
                     </div>
                 </div>
 
                 {/* BẢNG CHẤM CÔNG */}
-                <div className="bg-white rounded-[20px] md:rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-[40px] shadow-sm border border-slate-100 overflow-hidden">
                     {/* BỘ LỌC VÀ CHÚ THÍCH */}
-                    <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 sticky top-0 bg-white z-40">
-                        <div className="relative w-full xl:w-[350px]">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A0A0B0]" size={16} />
-                            <input type="text" placeholder="Tìm kiếm nhân viên..." className="w-full pl-10 pr-4 py-2.5 md:pl-12 md:pr-6 md:py-3.5 bg-[#F4F5F9] rounded-xl md:rounded-2xl outline-none font-medium text-[13px] md:text-[14px] text-[#1E1E2D] focus:ring-2 focus:ring-[#7C3AED]/20 transition-all" onChange={(e) => setSearchTerm(e.target.value)} />
+                    <div className="p-8 border-b border-slate-50 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 sticky top-0 bg-white/95 backdrop-blur-md z-40">
+                        <div className="relative w-full xl:w-[400px] group">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} strokeWidth={2.5} />
+                            <input 
+                                type="text" 
+                                placeholder="Tìm tên hoặc mã nhân viên..." 
+                                className="w-full pl-14 pr-6 py-4 bg-slate-50 border border-slate-100 rounded-3xl outline-none font-bold text-sm text-slate-900 focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-200 transition-all placeholder:text-slate-400" 
+                                onChange={(e) => setSearchTerm(e.target.value)} 
+                            />
                         </div>
-                        <div className="flex flex-wrap gap-3 md:gap-6">
-                            <Legend label="Có mặt" color="bg-[#7C3AED]" />
-                            <Legend label="Đi muộn" color="bg-[#EF4444]" />
-                            <Legend label="Vắng mặt" color="bg-gray-200" />
+                        <div className="flex flex-wrap gap-4">
+                            <Legend label="Có mặt" color="bg-indigo-500" description="Đúng giờ" />
+                            <Legend label="Đi muộn" color="bg-rose-500" description="Trễ > 5p" />
+                            <Legend label="Vắng mặt" color="bg-slate-200" description="Nghỉ/Không log" />
                         </div>
                     </div>
 
                     {/* VÙNG BẢNG VUỐT NGANG */}
-                    <div className="overflow-x-auto overflow-y-auto max-h-[500px] md:max-h-[600px] custom-scrollbar relative">
-                        <table className="w-full border-collapse">
+                    <div className="overflow-x-auto overflow-y-auto max-h-[600px] custom-scrollbar relative">
+                        <table className="w-full border-separate border-spacing-0">
                             <thead>
                                 <tr>
-                                    <th className="sticky left-0 z-40 bg-[#F4F5F9] px-4 md:px-8 py-3 md:py-5 text-left text-[11px] md:text-[12px] font-bold text-[#A0A0B0] uppercase tracking-wider min-w-[140px] md:min-w-[280px]">Nhân viên</th>
+                                    <th className="sticky left-0 z-40 bg-slate-50/80 backdrop-blur-md px-10 py-6 text-left text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 min-w-[300px]">Thông tin nhân viên</th>
                                     {daysArray.map(d => {
                                         const dayName = getDayOfWeek(d);
                                         const isWeekend = dayName === 'CN' || dayName === 'T7';
                                         return (
-                                            <th key={d} className={`p-1 md:p-2 text-center bg-white border-b border-gray-50 min-w-[35px] md:min-w-[45px] ${isWeekend ? 'bg-gray-50/50' : ''}`}>
-                                                <div className={`text-[9px] md:text-[11px] font-bold mb-0.5 md:mb-1 ${dayName === 'CN' ? 'text-[#EF4444]' : 'text-[#A0A0B0]'}`}>{dayName}</div>
-                                                <div className="text-[11px] md:text-[13px] font-bold text-[#1E1E2D]">{d}</div>
+                                            <th key={d} className={`p-3 text-center bg-white border-b border-slate-50 min-w-[50px] ${isWeekend ? 'bg-slate-50/30' : ''}`}>
+                                                <div className={`text-[10px] font-black mb-1 ${dayName === 'CN' ? 'text-rose-500' : 'text-slate-300'}`}>{dayName}</div>
+                                                <div className="text-sm font-black text-slate-900 tabular-nums">{d}</div>
                                             </th>
                                         );
                                     })}
-                                    <th className="sticky right-0 z-40 bg-[#F4F5F9] px-4 md:px-8 py-3 md:py-5 text-center text-[11px] md:text-[12px] font-bold text-[#A0A0B0] uppercase tracking-wider min-w-[70px] md:min-w-[auto]">Tổng</th>
+                                    <th className="sticky right-0 z-40 bg-slate-50/80 backdrop-blur-md px-8 py-6 text-center text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">Ngày công</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-slate-50">
                                 {loading ? (
-                                    <tr><td colSpan={daysInMonth + 2} className="py-20 md:py-32 text-center font-medium text-[#A0A0B0] text-sm md:text-lg">Đang tải dữ liệu chấm công...</td></tr>
+                                    <tr><td colSpan={daysInMonth + 2} className="py-40 text-center">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                                            <p className="font-black text-slate-400 uppercase tracking-widest text-xs">Đang xử lý dữ liệu...</p>
+                                        </div>
+                                    </td></tr>
                                 ) : filteredData.map((user, idx) => (
-                                    <tr key={user._id || idx} className="hover:bg-[#F9F8FF] transition-all group">
-                                        <td className="px-4 md:px-8 py-3 md:py-4 sticky left-0 bg-white group-hover:bg-[#F9F8FF] z-30 border-r border-gray-50 cursor-pointer" onClick={() => { setSelectedUser(user); setActiveTab('late'); }}>
-                                            <div className="flex items-center gap-2 md:gap-4">
-                                                <div className="hidden sm:flex w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-[#F3EFFF] text-[#7C3AED] items-center justify-center font-bold text-xs md:text-sm shrink-0">{user.name?.charAt(0)}</div>
+                                    <tr key={user._id || idx} className="hover:bg-indigo-50/30 transition-all group">
+                                        <td className="px-10 py-5 sticky left-0 bg-white group-hover:bg-indigo-50/30 z-30 border-r border-slate-50 cursor-pointer transition-colors" onClick={() => { setSelectedUser(user); setActiveTab('late'); }}>
+                                            <div className="flex items-center gap-5">
+                                                <div className="flex w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-indigo-100 items-center justify-center font-black text-base transition-all duration-300 shrink-0">{user.name?.charAt(0)}</div>
                                                 <div className="min-w-0">
-                                                    <p className="font-bold text-[12px] md:text-[14px] text-[#1E1E2D] group-hover:text-[#7C3AED] truncate">{user.name}</p>
-                                                    <p className="text-[9px] md:text-[11px] font-medium text-[#A0A0B0] mt-0.5 truncate">{user.userId}</p>
+                                                    <p className="font-black text-sm text-slate-900 group-hover:text-indigo-600 truncate transition-colors">{user.name}</p>
+                                                    <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest truncate">{user.userId}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -226,18 +240,18 @@ export default function AttendanceMonthly() {
                                             const dayData = user.days?.[day];
                                             const isPast = (month === (new Date().getMonth() + 1)) ? day <= todayNum : true;
                                             const isWeekend = getDayOfWeek(day) === 'CN' || getDayOfWeek(day) === 'T7';
-                                            const bgClass = isWeekend ? 'bg-gray-50/50' : '';
+                                            const bgClass = isWeekend ? 'bg-slate-50/30' : '';
 
                                             if (dayData?.status === 'APPROVED' || dayData?.status === 'PENDING') {
-                                                return <td key={day} className={`p-1 text-center ${bgClass}`}><div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full mx-auto ${dayData.isLate ? "bg-[#EF4444]" : "bg-[#7C3AED]"}`} /></td>;
+                                                return <td key={day} className={`p-1 text-center ${bgClass}`}><div className={`w-3 h-3 rounded-full mx-auto shadow-sm ${dayData.isLate ? "bg-rose-500 shadow-rose-100" : "bg-indigo-500 shadow-indigo-100"}`} /></td>;
                                             }
                                             else if (isPast) {
-                                                return <td key={day} className={`p-1 text-center ${bgClass}`}><div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full mx-auto bg-gray-200" /></td>;
+                                                return <td key={day} className={`p-1 text-center ${bgClass}`}><div className="w-3 h-3 rounded-full mx-auto bg-slate-200" /></td>;
                                             }
                                             return <td key={day} className={`p-1 text-center ${bgClass}`}></td>;
                                         })}
-                                        <td className="sticky right-0 z-30 bg-white group-hover:bg-[#F9F8FF] px-2 md:px-8 py-3 md:py-4 text-center border-l border-gray-50">
-                                            <span className="bg-[#F4F5F9] px-2 md:px-4 py-1 md:py-1.5 rounded-md md:rounded-lg font-bold text-[12px] md:text-[14px] text-[#7C3AED]">
+                                        <td className="sticky right-0 z-30 bg-white group-hover:bg-indigo-50/30 px-8 py-5 text-center border-l border-slate-50 transition-colors">
+                                            <span className="bg-slate-900 text-white px-5 py-2 rounded-2xl font-black text-xs tabular-nums shadow-lg shadow-slate-200">
                                                 {user.totalWorkDays || 0}
                                             </span>
                                         </td>
@@ -251,27 +265,30 @@ export default function AttendanceMonthly() {
 
             {/* MODAL DANH SÁCH NHANH (KPI MODAL) */}
             {kpiModal && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 md:p-6 bg-[#1E1E2D]/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-[24px] md:rounded-[32px] shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-10 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[48px] shadow-2xl w-full max-w-4xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500 flex flex-col max-h-[90vh] border border-white/20">
 
-                        <div className="p-4 md:p-8 flex justify-between items-center border-b border-gray-100 shrink-0">
-                            <div>
-                                <h2 className="text-lg md:text-xl font-bold text-[#1E1E2D]">
+                        <div className="p-10 flex justify-between items-center border-b border-slate-50 shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-slate-900 text-white rounded-2xl">
+                                    <TrendingUp size={24} strokeWidth={2.5} />
+                                </div>
+                                <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                                     {kpiModal.type === 'total' ? 'Danh Sách Nhân Sự' : kpiModal.type === 'late' ? 'Báo Cáo Đi Muộn' : 'Báo Cáo Vắng Mặt'}
                                 </h2>
                             </div>
-                            <button onClick={() => setKpiModal(null)} className="p-1.5 md:p-2 bg-gray-50 hover:bg-gray-100 rounded-full transition-all text-gray-500"><X size={18} className="md:w-5 md:h-5" /></button>
+                            <button onClick={() => setKpiModal(null)} className="p-4 bg-slate-50 hover:bg-slate-100 rounded-full transition-all text-slate-400 hover:text-slate-900 hover:rotate-90 duration-300"><X size={24} strokeWidth={3} /></button>
                         </div>
 
                         {kpiModal.type !== 'total' && (
-                            <div className="flex px-4 md:px-8 py-3 md:py-4 gap-2 md:gap-3 bg-white border-b border-gray-50 overflow-x-auto custom-scrollbar shrink-0">
-                                <TabBtn active={kpiModal.subTab === 'today'} onClick={() => setKpiModal({ ...kpiModal, subTab: 'today' })} label={`Hôm nay (${todayNum})`} />
-                                <TabBtn active={kpiModal.subTab === 'yesterday'} onClick={() => setKpiModal({ ...kpiModal, subTab: 'yesterday' })} label={`Hôm qua (${yesterdayNum})`} />
-                                <TabBtn active={kpiModal.subTab === 'month'} onClick={() => setKpiModal({ ...kpiModal, subTab: 'month' })} label="Cả tháng" />
+                            <div className="flex px-10 py-6 gap-4 bg-slate-50/50 border-b border-slate-50 overflow-x-auto custom-scrollbar shrink-0">
+                                <TabBtn active={kpiModal.subTab === 'today'} onClick={() => setKpiModal({ ...kpiModal, subTab: 'today' })} label="Hôm nay" count={kpiModal.type === 'late' ? lateTodayCount : absentTodayCount} />
+                                <TabBtn active={kpiModal.subTab === 'yesterday'} onClick={() => setKpiModal({ ...kpiModal, subTab: 'yesterday' })} label="Hôm qua" />
+                                <TabBtn active={kpiModal.subTab === 'month'} onClick={() => setKpiModal({ ...kpiModal, subTab: 'month' })} label="Toàn bộ tháng" />
                             </div>
                         )}
 
-                        <div className="p-4 md:p-8 overflow-y-auto bg-[#F4F5F9]/50 flex-1 custom-scrollbar">
+                        <div className="p-10 overflow-y-auto bg-white flex-1 custom-scrollbar">
                             {renderKpiList()}
                         </div>
                     </div>
@@ -280,40 +297,44 @@ export default function AttendanceMonthly() {
 
             {/* MODAL CHI TIẾT 1 NHÂN VIÊN */}
             {selectedUser && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 md:p-6 bg-[#1E1E2D]/40 backdrop-blur-sm">
-                    <div className="bg-white rounded-[24px] md:rounded-[32px] shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[48px] shadow-2xl w-full max-w-3xl overflow-hidden animate-in slide-in-from-bottom-8 duration-500 flex flex-col max-h-[90vh] border border-white/20">
 
-                        <div className="p-4 md:p-8 flex justify-between items-center bg-white border-b border-gray-50 shrink-0">
-                            <div className="flex items-center gap-3 md:gap-5">
-                                <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-[#F3EFFF] text-[#7C3AED] flex items-center justify-center font-bold text-lg md:text-2xl">{selectedUser.name?.charAt(0)}</div>
+                        <div className="p-10 flex justify-between items-center bg-white border-b border-slate-50 shrink-0">
+                            <div className="flex items-center gap-6">
+                                <div className="w-20 h-20 rounded-[32px] bg-indigo-500 text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-indigo-200 ring-4 ring-indigo-50">{selectedUser.name?.charAt(0)}</div>
                                 <div>
-                                    <h2 className="text-base md:text-xl font-bold text-[#1E1E2D]">{selectedUser.name}</h2>
-                                    <p className="text-[#A0A0B0] font-medium mt-0.5 md:mt-1 text-[11px] md:text-[13px]">Mã NV: {selectedUser.userId}</p>
+                                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">{selectedUser.name}</h2>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-indigo-500 font-black text-[11px] uppercase tracking-[0.2em]">{selectedUser.userId}</span>
+                                        <span className="w-1 h-1 rounded-full bg-slate-300" />
+                                        <span className="text-slate-400 font-bold text-xs uppercase tracking-wider">Nhân viên chính thức</span>
+                                    </div>
                                 </div>
                             </div>
-                            <button onClick={() => setSelectedUser(null)} className="p-1.5 md:p-2 bg-gray-50 hover:bg-gray-100 rounded-full transition-all text-gray-500"><X size={18} className="md:w-5 md:h-5" /></button>
+                            <button onClick={() => setSelectedUser(null)} className="p-4 bg-slate-50 hover:bg-slate-100 rounded-full transition-all text-slate-400 hover:text-slate-900 duration-300"><X size={24} strokeWidth={3} /></button>
                         </div>
 
-                        <div className="flex justify-start sm:justify-center p-3 md:p-4 gap-2 bg-white border-b border-gray-50 overflow-x-auto custom-scrollbar shrink-0">
-                            <TabBtn active={activeTab === 'late'} onClick={() => setActiveTab('late')} label={`Đi Muộn (${selectedUser.lateDates?.length || 0})`} />
-                            <TabBtn active={activeTab === 'absent'} onClick={() => setActiveTab('absent')} label={`Vắng Mặt (${selectedUser.absentDates?.length || 0})`} />
-                            <TabBtn active={activeTab === 'on-time'} onClick={() => setActiveTab('on-time')} label={`Đúng Giờ (${selectedUser.onTimeDates?.length || 0})`} />
+                        <div className="flex justify-start sm:justify-center p-6 gap-4 bg-slate-50/50 border-b border-slate-50 overflow-x-auto custom-scrollbar shrink-0">
+                            <TabBtn active={activeTab === 'late'} onClick={() => setActiveTab('late')} label="Đi Muộn" count={selectedUser.lateDates?.length || 0} />
+                            <TabBtn active={activeTab === 'absent'} onClick={() => setActiveTab('absent')} label="Vắng Mặt" count={selectedUser.absentDates?.length || 0} />
+                            <TabBtn active={activeTab === 'on-time'} onClick={() => setActiveTab('on-time')} label="Đúng Giờ" count={selectedUser.onTimeDates?.length || 0} />
                         </div>
 
-                        <div className="p-4 md:p-8 overflow-y-auto bg-[#F4F5F9]/50 flex-1 custom-scrollbar">
+                        <div className="p-10 overflow-y-auto bg-white flex-1 custom-scrollbar">
                             {activeTab === 'late' && (
-                                <div className="space-y-2 md:space-y-3">
-                                    {selectedUser.lateDates?.length > 0 ? selectedUser.lateDates.sort((a: number, b: number) => a - b).map((d: number) => <DetailItem key={d} day={d} info={`Vào lúc: ${selectedUser.days[d]?.checkIn || '--:--'}`} type="late" />) : <EmptyState msg="Không có ngày đi muộn nào!" icon={<CheckCircle2 size={28} className="text-[#7C3AED] mb-2 md:mb-3 mx-auto md:w-8 md:h-8" />} />}
+                                <div className="space-y-4">
+                                    {selectedUser.lateDates?.length > 0 ? selectedUser.lateDates.sort((a: number, b: number) => a - b).map((d: number) => <DetailItem key={d} day={d} info={selectedUser.days[d]?.checkIn || '--:--'} type="late" month={month} year={year} />) : <EmptyState msg="Thật tuyệt vời! Không có ngày nào đi muộn." icon={<CheckCircle2 size={32} className="text-emerald-500" />} />}
                                 </div>
                             )}
                             {activeTab === 'absent' && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-                                    {selectedUser.absentDates?.length > 0 ? selectedUser.absentDates.sort((a: number, b: number) => a - b).map((d: number) => <DetailItem key={d} day={d} info="Không có dữ liệu" type="absent" />) : <EmptyState msg="Đi làm đầy đủ." icon={<CheckCircle2 size={28} className="text-[#7C3AED] mb-2 md:mb-3 mx-auto md:w-8 md:h-8" />} />}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {selectedUser.absentDates?.length > 0 ? selectedUser.absentDates.sort((a: number, b: number) => a - b).map((d: number) => <DetailItem key={d} day={d} info="Nghỉ" type="absent" month={month} year={year} />) : <EmptyState msg="Đi làm đầy đủ không sót ngày nào!" icon={<UserCheck size={32} className="text-indigo-500" />} />}
                                 </div>
                             )}
                             {activeTab === 'on-time' && (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">
-                                    {selectedUser.onTimeDates?.length > 0 ? selectedUser.onTimeDates.sort((a: number, b: number) => a - b).map((d: number) => <DetailItem key={d} day={d} info={`Vào lúc: ${selectedUser.days[d]?.checkIn || '--:--'}`} type="on-time" />) : <EmptyState msg="Chưa có dữ liệu." icon={<AlertCircle size={28} className="text-gray-400 mb-2 md:mb-3 mx-auto md:w-8 md:h-8" />} />}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {selectedUser.onTimeDates?.length > 0 ? selectedUser.onTimeDates.sort((a: number, b: number) => a - b).map((d: number) => <DetailItem key={d} day={d} info={selectedUser.days[d]?.checkIn || '--:--'} type="on-time" month={month} year={year} />) : <EmptyState msg="Chưa có dữ liệu." />}
                                 </div>
                             )}
                         </div>
@@ -323,67 +344,144 @@ export default function AttendanceMonthly() {
 
             {/* CSS Scrollbar */}
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E2E8F0; border-radius: 20px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #CBD5E1; }
             `}</style>
         </div>
     );
 }
 
-// CÁC COMPONENT GIAO DIỆN ĐƯỢC LÀM LẠI CHO ĐẸP VÀ RESPONSIVE
-const MetricCard = ({ label, value, sub, type }: any) => {
-    const styles: any = {
-        primary: "text-[#7C3AED] bg-white hover:border-[#7C3AED]/30",
-        danger: "text-[#EF4444] bg-white hover:border-[#EF4444]/30",
-        neutral: "text-[#1E1E2D] bg-white hover:border-gray-300"
+// CÁC COMPONENT GIAO DIỆN ĐƯỢC LÀM LẠI CHO ĐẸP VÀ CHUYÊN NGHIỆP
+const MetricCard = ({ label, value, sub, type, icon: Icon }: any) => {
+    const config: any = {
+        primary: {
+            bg: "bg-indigo-50/50",
+            iconBg: "bg-indigo-500",
+            border: "hover:border-indigo-200",
+            text: "text-indigo-600",
+            accent: "indigo"
+        },
+        danger: {
+            bg: "bg-rose-50/50",
+            iconBg: "bg-rose-500",
+            border: "hover:border-rose-200",
+            text: "text-rose-600",
+            accent: "rose"
+        },
+        neutral: {
+            bg: "bg-slate-50/50",
+            iconBg: "bg-slate-500",
+            border: "hover:border-slate-200",
+            text: "text-slate-600",
+            accent: "slate"
+        }
     };
+
+    const s = config[type];
+
     return (
-        <div className={`p-4 md:p-6 rounded-[20px] md:rounded-[24px] shadow-sm border border-gray-100 hover:shadow-md transition-all group ${styles[type]}`}>
-            <p className="text-[11px] md:text-[13px] font-bold text-[#A0A0B0] mb-2 md:mb-3 group-hover:text-current transition-colors">{label}</p>
-            <div className="flex justify-between items-end">
-                <span className="text-2xl md:text-4xl font-black">{value}</span>
-                <div className="flex items-center gap-1 md:gap-1.5 text-gray-400 group-hover:text-current transition-colors opacity-70">
-                    <span className="text-[10px] md:text-[12px] font-medium">{sub}</span>
-                    <ChevronRightCircle size={12} className="md:w-3.5 md:h-3.5" />
+        <div className={`group relative p-8 rounded-[40px] bg-white border border-slate-100 ${s.border} shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden`}>
+            <div className={`absolute -top-10 -right-10 w-40 h-40 ${s.bg} rounded-full -z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-3xl`} />
+            
+            <div className="relative z-10">
+                <div className="flex justify-between items-start mb-6">
+                    <div className={`p-4 rounded-3xl ${s.iconBg} text-white shadow-xl shadow-${s.accent}-100 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6`}>
+                        <Icon size={24} strokeWidth={2.5} />
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-300 group-hover:text-slate-500 transition-colors">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{sub}</span>
+                        <ChevronRightCircle size={14} strokeWidth={2.5} />
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 className="text-slate-400 text-xs font-black uppercase tracking-widest mb-2">{label}</h3>
+                    <div className="flex items-baseline gap-3">
+                        <span className="text-4xl font-black text-slate-900 tabular-nums tracking-tighter">{value}</span>
+                        <span className="text-slate-300 text-[10px] font-black uppercase tracking-widest">Người</span>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
 
-const Legend = ({ label, color }: any) => (
-    <div className="flex items-center gap-1.5 md:gap-2">
-        <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${color}`} />
-        <span className="text-[11px] md:text-[13px] font-medium text-[#1E1E2D]">{label}</span>
+const Legend = ({ label, color, description }: any) => (
+    <div className="flex items-center gap-4 px-6 py-3 bg-slate-50/50 rounded-3xl border border-slate-100 transition-all hover:bg-white hover:shadow-md cursor-default">
+        <div className={`w-3.5 h-3.5 rounded-full ${color} shadow-lg shadow-current/20 animate-pulse`} />
+        <div className="flex flex-col">
+            <span className="text-[13px] font-black text-slate-800 leading-none">{label}</span>
+            {description && <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-1.5">{description}</span>}
+        </div>
     </div>
 );
 
-// Tab chuyển sang dạng Pill (Viên thuốc) bo tròn 100%
-const TabBtn = ({ active, onClick, label }: any) => {
+const TabBtn = ({ active, onClick, label, count }: any) => {
     return (
-        <button onClick={onClick} className={`px-4 md:px-5 py-2 md:py-2.5 rounded-full font-bold text-[11px] md:text-[13px] whitespace-nowrap transition-all flex-shrink-0 ${active ? 'bg-[#F3EFFF] text-[#7C3AED]' : 'text-[#A0A0B0] hover:bg-gray-100'}`}>
+        <button 
+            onClick={onClick} 
+            className={`flex items-center gap-3 px-8 py-4 rounded-3xl font-black text-xs uppercase tracking-widest transition-all duration-300 whitespace-nowrap
+                ${active 
+                    ? 'bg-slate-900 text-white shadow-2xl shadow-slate-200 translate-y-[-4px]' 
+                    : 'bg-white text-slate-400 hover:bg-slate-50 border border-slate-100 hover:text-slate-600'}`}
+        >
             {label}
+            {count !== undefined && (
+                <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black transition-colors ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'}`}>
+                    {count}
+                </span>
+            )}
         </button>
     );
 };
 
-const DetailItem = ({ day, info, type }: any) => {
-    const indicatorColor: any = { 'late': "bg-[#EF4444]", 'absent': "bg-gray-300", 'on-time': "bg-[#7C3AED]" };
+const DetailItem = ({ day, info, type, month, year }: any) => {
+    const config: any = { 
+        'late': { color: "text-rose-600", bg: "bg-rose-50", label: "Đi muộn", icon: Clock },
+        'absent': { color: "text-slate-400", bg: "bg-slate-50", label: "Vắng mặt", icon: X },
+        'on-time': { color: "text-emerald-600", bg: "bg-emerald-50", label: "Đúng giờ", icon: CheckCircle2 }
+    };
+    const s = config[type];
+    const Icon = s.icon;
+
+    // Helper for date
+    const date = new Date(year, month - 1, day);
+    const dayName = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'][date.getDay()];
+
     return (
-        <div className="flex justify-between items-center p-3 md:p-4 rounded-xl md:rounded-2xl bg-white border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-2 md:gap-3">
-                <div className={`w-1.5 md:w-2 h-6 md:h-8 rounded-full ${indicatorColor[type]}`} />
-                <span className="font-bold text-[12px] md:text-[14px] text-[#1E1E2D]">Ngày {day < 10 ? `0${day}` : day}</span>
+        <div className="group flex justify-between items-center p-5 rounded-[32px] bg-slate-50/50 border border-slate-100 hover:bg-white hover:border-indigo-100 hover:shadow-xl hover:shadow-indigo-50/50 transition-all duration-500">
+            <div className="flex items-center gap-5">
+                <div className={`w-14 h-14 rounded-2xl ${s.bg} ${s.color} flex flex-col items-center justify-center font-black shadow-inner`}>
+                    <span className="text-xs leading-none mb-1 opacity-60 uppercase">{dayName.split(' ')[0]}</span>
+                    <span className="text-xl leading-none">{day < 10 ? `0${day}` : day}</span>
+                </div>
+                <div>
+                    <p className="font-black text-slate-900 text-sm tracking-tight">{dayName}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                        <Icon size={12} strokeWidth={3} className={s.color} />
+                        <span className={`text-[10px] font-black uppercase tracking-[0.1em] ${s.color}`}>{s.label}</span>
+                    </div>
+                </div>
             </div>
-            <span className="bg-[#F4F5F9] text-[#A0A0B0] text-[10px] md:text-[12px] font-bold px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg md:rounded-xl">{info}</span>
+            <div className="text-right">
+                <div className="flex items-center gap-2 justify-end">
+                    {type !== 'absent' && <Clock size={12} className="text-slate-400" />}
+                    <span className="block text-sm font-black text-slate-900 tabular-nums">{info}</span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1.5 block">Tháng {month}/{year}</span>
+            </div>
         </div>
     );
 };
 
 const EmptyState = ({ msg, icon }: any) => (
-    <div className="text-center py-8 md:py-12 bg-white rounded-[20px] md:rounded-[24px] border border-dashed border-gray-200 col-span-full">
-        {icon || <Info size={28} className="text-gray-300 mb-2 md:mb-3 mx-auto md:w-8 md:h-8" />}
-        <p className="text-[12px] md:text-[14px] font-medium text-[#A0A0B0]">{msg}</p>
+    <div className="flex flex-col items-center justify-center py-24 px-10 bg-slate-50/50 rounded-[48px] border-4 border-dashed border-slate-100 text-center w-full">
+        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-8 shadow-xl shadow-slate-100">
+            {icon || <Info size={40} className="text-slate-200" strokeWidth={2.5} />}
+        </div>
+        <h3 className="text-slate-900 font-black text-xl mb-3 tracking-tight">Thông báo hệ thống</h3>
+        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest max-w-[280px] leading-relaxed">{msg}</p>
     </div>
 );
